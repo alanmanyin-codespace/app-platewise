@@ -1,0 +1,57 @@
+{
+  "name": "all-about-savings-v-3",
+  "main": "index.ts",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=22.22.1 <23"
+  },
+  "packageManager": "npm@11.6.2",
+  "scripts": {
+    "start": "expo start",
+    "build": "expo export",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "expo lint",
+    "test": "vitest run && tsc"
+  },
+  "dependencies": {
+    "@formatjs/intl-listformat": "8.3.15",
+    "@formatjs/intl-locale": "5.3.12",
+    "@formatjs/intl-pluralrules": "6.3.16",
+    "@formatjs/intl-segmenter": "12.2.15",
+    "@formatjs/intl-supportedvaluesof": "2.3.11",
+    "@react-native-vector-icons/material-design-icons": "14.0.0",
+    "array.prototype.tosorted": "1.1.4",
+    "expo": "^58.0.16",
+    "expo-crypto": "~58.0.7",
+    "expo-font": "~58.0.9",
+    "expo-image": "~58.0.16",
+    "expo-router": "~58.0.24",
+    "expo-splash-screen": "~58.0.10",
+    "expo-status-bar": "~58.0.3",
+    "expo-system-ui": "~58.0.6",
+    "jotai": "3.0.1",
+    "lodash": "4.18.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-safe-area-context": "~5.10.1",
+    "react-native-web": "^0.21.4",
+    "react-native-worklets": "0.13.0",
+    "string.prototype.iswellformed": "1.0.2",
+    "string.prototype.towellformed": "1.0.2",
+    "temporal-polyfill": "1.0.6"
+  },
+  "devDependencies": {
+    "@expo/metro-runtime": "~58.0.14",
+    "@types/lodash": "4.17.26",
+    "@types/react": "~19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~58.0.4",
+    "typescript": "~6.0.3",
+    "vitest": "4.1.6"
+  },
+  "private": true,
+  "allowScripts": { "fsevents@2.3.3": true, "unrs-resolver@1.12.2": true }
+}
