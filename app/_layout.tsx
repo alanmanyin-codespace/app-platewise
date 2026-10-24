@@ -7,6 +7,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name='(tabs)' />
             <Stack.Screen name='recipe-detail' />
+            <Stack.Screen name='profile-interview' />
         </Stack>
     );
 }
