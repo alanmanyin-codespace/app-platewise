@@ -1,5 +1,6 @@
 import { ProfilePreferenceEditor } from '@/components/ProfilePreferenceEditor';
 import { ProfileSummaryCard } from '@/components/ProfileSummaryCard';
+import { theme } from '@/lib/theme';
 import { useAtom } from '@/lib/useAtom';
 import { toggleAllergy } from '@/logic/actions/toggleAllergy';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
@@ -79,7 +80,7 @@ export default function Profile() {
 const styles = StyleSheet.create({
     content: { paddingBottom: 32, paddingHorizontal: 20, paddingTop: 12 },
     empty: { color: '#717171', fontSize: 13, marginBottom: 24 },
-    interviewButton: { alignItems: 'center', backgroundColor: '#FF385C', borderRadius: 10, flexDirection: 'row', justifyContent: 'center', marginBottom: 24, padding: 13 },
+    interviewButton: { alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 10, flexDirection: 'row', justifyContent: 'center', marginBottom: 24, padding: 13 },
     interviewButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700', marginLeft: 7 },
     safeArea: { backgroundColor: '#FFFFFF', flex: 1 },
     section: { marginTop: 8 },

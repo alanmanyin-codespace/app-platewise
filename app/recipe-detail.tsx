@@ -3,6 +3,7 @@ import { join } from '@/lib/array/join';
 import { map } from '@/lib/array/map';
 import { calcSafe } from '@/lib/math/calc';
 import { formatNumber } from '@/lib/math/formatNumber';
+import { theme } from '@/lib/theme';
 import { useAtom } from '@/lib/useAtom';
 import { addRecipeIngredientsToGroceries } from '@/logic/actions/addRecipeIngredientsToGroceries';
 import { selectedRecipeAtom } from '@/logic/app-state/selectedRecipeAtom';
@@ -194,7 +195,7 @@ export default function RecipeDetail() {
 const styles = StyleSheet.create({
     addGroceriesBtn: {
         alignItems: 'center',
-        backgroundColor: '#FF385C',
+        backgroundColor: theme.colors.primary,
         borderRadius: 10,
         flexDirection: 'row',
         paddingBottom: 12,

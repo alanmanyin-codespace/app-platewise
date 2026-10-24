@@ -1,6 +1,7 @@
 import { StoreBadge } from '@/components/StoreBadge';
 import { join } from '@/lib/array/join';
 import { formatNumber } from '@/lib/math/formatNumber';
+import { theme } from '@/lib/theme';
 import { openRecipeDetail } from '@/logic/actions/openRecipeDetail';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { Image } from 'expo-image';
@@ -51,7 +52,7 @@ export function DealRecipeCard({ recipeData }: Props) {
                 </View>
                 <Text style={styles.cardTitle}>{recipeData.title}</Text>
                 <View style={styles.flyerItemMatched}>
-                    <MaterialDesignIcons color='#FF385C' name='check-decagram' size={14} />
+                    <MaterialDesignIcons color={theme.colors.primary} name='check-decagram' size={14} />
                     <Text style={styles.matchedText}>
                         {join(['Flyer item: ', recipeData.flyerItem], {
                             type: 'separator',
@@ -89,7 +90,7 @@ export function DealRecipeCard({ recipeData }: Props) {
                     </View>
                     <View style={styles.actionBtnHint}>
                         <Text style={styles.actionBtnText}>View Recipe</Text>
-                        <MaterialDesignIcons color='#FF385C' name='chevron-right' size={16} />
+                        <MaterialDesignIcons color={theme.colors.primary} name='chevron-right' size={16} />
                     </View>
                 </View>
             </View>
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row'
     },
     actionBtnText: {
-        color: '#FF385C',
+        color: theme.colors.primary,
         fontSize: 12,
         fontWeight: '700',
         marginRight: 2

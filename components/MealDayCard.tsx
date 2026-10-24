@@ -1,5 +1,6 @@
 import { join } from '@/lib/array/join';
 import { formatNumber } from '@/lib/math/formatNumber';
+import { theme } from '@/lib/theme';
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 import type { MealPlanDay } from '@/logic/types';
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
         marginRight: 8
     },
     dayText: {
-        color: '#FF385C',
+        color: theme.colors.primary,
         fontSize: 14,
         fontWeight: '800'
     },

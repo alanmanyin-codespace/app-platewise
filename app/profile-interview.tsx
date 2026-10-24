@@ -1,4 +1,5 @@
 import { useAtom } from '@/lib/useAtom';
+import { theme } from '@/lib/theme';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
 import { PROFILE_ROUTE } from '@/logic/profile/interview';
 import { applyProfileOption, type ProfileOptionField } from '@/logic/profile/profileSetup';
@@ -170,8 +171,8 @@ function formatHouseholdSize(value: number): string {
 const styles = StyleSheet.create({
     backButton: { alignItems: 'center', borderColor: '#DED8D0', borderRadius: 12, borderWidth: 1, flex: 1, marginRight: 10, padding: 14 },
     backText: { color: '#26352F', fontSize: 14, fontWeight: '700' },
-    close: { color: '#2D6A5B', fontSize: 13, fontWeight: '700' },
-    content: { alignItems: 'center', backgroundColor: '#F8F7F5', flexGrow: 1, justifyContent: 'center', padding: 18 },
+    close: { color: theme.colors.primary, fontSize: 13, fontWeight: '700' },
+    content: { alignItems: 'center', backgroundColor: theme.colors.canvas, flexGrow: 1, justifyContent: 'center', padding: 18 },
     description: { color: '#716A63', fontSize: 15, lineHeight: 22, marginBottom: 24, textAlign: 'center' },
     disabledButton: { backgroundColor: '#F3F0EC', borderColor: '#F3F0EC' },
     disabledNextButton: { backgroundColor: '#A8BDB4' },
@@ -182,20 +183,20 @@ const styles = StyleSheet.create({
     helper: { color: '#8A8178', fontSize: 12, marginTop: 12, textAlign: 'center' },
     nameInput: { backgroundColor: '#FFFFFF', borderColor: '#DED8D0', borderRadius: 12, borderWidth: 1, color: '#26352F', fontSize: 16, padding: 14, width: '100%' },
     navigation: { flexDirection: 'row', marginTop: 28 },
-    nextButton: { alignItems: 'center', backgroundColor: '#2D6A5B', borderRadius: 12, flex: 1, padding: 14 },
+    nextButton: { alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 12, flex: 1, padding: 14 },
     nextText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
     option: { backgroundColor: '#FFFFFF', borderColor: '#DED8D0', borderRadius: 20, borderWidth: 1, marginBottom: 10, marginHorizontal: 4, paddingHorizontal: 16, paddingVertical: 12 },
-    optionSelected: { backgroundColor: '#2D6A5B', borderColor: '#2D6A5B' },
+    optionSelected: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
     optionText: { color: '#26352F', fontSize: 14, fontWeight: '600' },
     optionTextSelected: { color: '#FFFFFF' },
     options: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
-    progressFill: { backgroundColor: '#2D6A5B', borderRadius: 4, height: 6 },
+    progressFill: { backgroundColor: theme.colors.primary, borderRadius: 4, height: 6 },
     progressHeader: { alignItems: 'center', marginBottom: 12 },
     progressTrack: { backgroundColor: '#E4DED6', borderRadius: 4, height: 6, overflow: 'hidden', width: '100%' },
     question: { color: '#26352F', fontSize: 27, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
     questionCard: { backgroundColor: '#FFFFFF', borderColor: '#EEE9E2', borderRadius: 20, borderWidth: 1, marginTop: 26, padding: 26, width: '100%' },
-    safeArea: { backgroundColor: '#F8F7F5', flex: 1 },
-    stepCount: { color: '#2D6A5B', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+    safeArea: { backgroundColor: theme.colors.canvas, flex: 1 },
+    stepCount: { color: theme.colors.primary, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
     stepLabel: { color: '#8A8178', fontSize: 13, marginTop: 4 },
     title: { color: '#26352F', fontSize: 22, fontWeight: '800', marginTop: 3 },
     wizardShell: { maxWidth: 680, width: '100%' }

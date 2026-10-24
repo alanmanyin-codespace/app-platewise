@@ -1,5 +1,6 @@
 import { getProfileCompletion, getProfileSummary } from '@/logic/profile/profileSelectors';
 import type { Profile } from '@/logic/profile/types';
+import { theme } from '@/lib/theme';
 import { StyleSheet, Text, View } from 'react-native';
 
 type Props = { profile: Profile | null };
@@ -29,8 +30,8 @@ export function ProfileSummaryCard({ profile }: Props) {
 const styles = StyleSheet.create({
     card: { backgroundColor: '#222222', borderRadius: 16, marginBottom: 24, padding: 18 },
     empty: { color: '#B0B0B0', fontSize: 12, marginTop: 12 },
-    eyebrow: { color: '#FF385C', fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-    fill: { backgroundColor: '#FF385C', borderRadius: 3, height: 6 },
+    eyebrow: { color: theme.colors.primary, fontSize: 11, fontWeight: '700', letterSpacing: 1 },
+    fill: { backgroundColor: theme.colors.primary, borderRadius: 3, height: 6 },
     progress: { color: '#B0B0B0', fontSize: 12, marginTop: 4 },
     summaryLine: { color: '#FFFFFF', fontSize: 12, marginTop: 8 },
     title: { color: '#FFFFFF', fontSize: 24, fontWeight: '800', marginTop: 4 },

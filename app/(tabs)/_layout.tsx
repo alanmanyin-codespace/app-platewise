@@ -1,12 +1,13 @@
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { Tabs } from 'expo-router';
+import { theme } from '@/lib/theme';
 
 export default function Layout() {
     return (
         <Tabs
             screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: '#FF385C',
+                tabBarActiveTintColor: theme.colors.primary,
                 tabBarInactiveTintColor: '#717171',
                 tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
                 tabBarStyle: { backgroundColor: '#FFFFFF', height: 60 }

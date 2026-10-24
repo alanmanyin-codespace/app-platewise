@@ -3,6 +3,7 @@ import { filter } from "@/lib/array/filter";
 import { map } from "@/lib/array/map";
 import { compare } from "@/lib/boolean/compare";
 import { conditionalSafe } from "@/lib/boolean/conditional";
+import { theme } from "@/lib/theme";
 import { useAtom } from "@/lib/useAtom";
 import { activeStoreFilterAtom } from "@/logic/app-state/activeStoreFilterAtom";
 import { allergyFiltersAtom } from "@/logic/app-state/allergyFiltersAtom";
@@ -37,7 +38,7 @@ export default function Index() {
             )
     );
 
-    return <><StatusBar barStyle="dark-content"/><Tabs.Screen options={{ "headerShown": false, "tabBarIcon": ({ color, size }) => <MaterialDesignIcons color={color} name="tag-outline" size={size}/>, "title": "Deals" }}/><SafeAreaView edges={["top"]} style={styles.exploreSafeArea}><View style={styles.exploreHeader}><View style={styles.topLocationRow}><View style={styles.locationGroup}><MaterialDesignIcons color="#FF385C" name="map-marker" size={18}/><Text style={styles.locationText}>Toronto, ON • 5 Flyers Active</Text></View><View style={styles.savingsStat}><Text style={styles.savingsStatText}>Avg 38% Off</Text></View></View><Text style={styles.pageMainTitle}>Meal Plans for Us</Text><Text style={styles.pageSubtitle}>Recipes automatically generated from this week&apos;s grocery flyers</Text></View><View style={styles.storeFilterScroll}><ScrollView contentContainerStyle={styles.filtersScrollContentContainer} horizontal showsHorizontalScrollIndicator={false}>{map(storeFilterOptions, (item, storeFiltersRepeaterIndex) => <Pressable key={storeFiltersRepeaterIndex} style={{ "backgroundColor": conditionalSafe([{ "condition": `${item} = ${activeStoreFilter}`, "value": "#222222" }], "#F7F7F7"), "borderColor": conditionalSafe([{ "condition": `${item} = ${activeStoreFilter}`, "value": "#222222" }], "#EBEBEB"), "borderRadius": 20, "borderWidth": 1, "marginRight": 8, "paddingBottom": 7, "paddingLeft": 14, "paddingRight": 14, "paddingTop": 7 }} onPress={() => { store.set(activeStoreFilterAtom, item); }}><Text style={{ "color": conditionalSafe([{ "condition": `${item} = ${activeStoreFilter}`, "value": "#FFFFFF" }], "#484848"), "fontSize": 12, "fontWeight": "700" }}>{item}</Text></Pressable>)}</ScrollView></View><ScrollView contentContainerStyle={styles.dealsScrollViewContentContainer}><View style={styles.allergenBanner}><MaterialDesignIcons color="#008A05" name="shield-check-outline" size={20}/><Text style={styles.bannerText}>Recipes filtered against your allergy preferences.</Text></View>{map(allergySafeDeals, (item) => <DealRecipeCard key={item.id} recipeData={item}/>)}</ScrollView></SafeAreaView></>;
+    return <><StatusBar barStyle="dark-content"/><Tabs.Screen options={{ "headerShown": false, "tabBarIcon": ({ color, size }) => <MaterialDesignIcons color={color} name="tag-outline" size={size}/>, "title": "Deals" }}/><SafeAreaView edges={["top"]} style={styles.exploreSafeArea}><View style={styles.exploreHeader}><View style={styles.topLocationRow}><View style={styles.locationGroup}><MaterialDesignIcons color={theme.colors.primary} name="map-marker" size={18}/><Text style={styles.locationText}>Toronto, ON • 5 Flyers Active</Text></View><View style={styles.savingsStat}><Text style={styles.savingsStatText}>Avg 38% Off</Text></View></View><Text style={styles.pageMainTitle}>Meal Plans for Us</Text><Text style={styles.pageSubtitle}>Recipes automatically generated from this week&apos;s grocery flyers</Text></View><View style={styles.storeFilterScroll}><ScrollView contentContainerStyle={styles.filtersScrollContentContainer} horizontal showsHorizontalScrollIndicator={false}>{map(storeFilterOptions, (item, storeFiltersRepeaterIndex) => <Pressable key={storeFiltersRepeaterIndex} style={{ "backgroundColor": conditionalSafe([{ "condition": `${item} = ${activeStoreFilter}`, "value": "#222222" }], "#F7F7F7"), "borderColor": conditionalSafe([{ "condition": `${item} = ${activeStoreFilter}`, "value": "#222222" }], "#EBEBEB"), "borderRadius": 20, "borderWidth": 1, "marginRight": 8, "paddingBottom": 7, "paddingLeft": 14, "paddingRight": 14, "paddingTop": 7 }} onPress={() => { store.set(activeStoreFilterAtom, item); }}><Text style={{ "color": conditionalSafe([{ "condition": `${item} = ${activeStoreFilter}`, "value": "#FFFFFF" }], "#484848"), "fontSize": 12, "fontWeight": "700" }}>{item}</Text></Pressable>)}</ScrollView></View><ScrollView contentContainerStyle={styles.dealsScrollViewContentContainer}><View style={styles.allergenBanner}><MaterialDesignIcons color="#008A05" name="shield-check-outline" size={20}/><Text style={styles.bannerText}>Recipes filtered against your allergy preferences.</Text></View>{map(allergySafeDeals, (item) => <DealRecipeCard key={item.id} recipeData={item}/>)}</ScrollView></SafeAreaView></>;
 }
 
 const styles = StyleSheet.create({
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
             "paddingTop": 4
         },
         "savingsStatText": {
-            "color": "#FF385C",
+            "color": theme.colors.primary,
             "fontSize": 11,
             "fontWeight": "700"
         },

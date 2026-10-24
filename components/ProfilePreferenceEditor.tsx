@@ -1,4 +1,5 @@
 import type { Profile, ProfileListField } from '@/logic/profile/types';
+import { theme } from '@/lib/theme';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 type Props = { profile: Profile; onToggle: (field: ProfileListField, value: string) => void };
@@ -38,6 +39,6 @@ const styles = StyleSheet.create({
     chips: { flexDirection: 'row', flexWrap: 'wrap' },
     group: { marginBottom: 18 },
     label: { color: '#222222', fontSize: 16, fontWeight: '700', marginBottom: 8 },
-    selectedChip: { backgroundColor: '#FF385C', borderColor: '#FF385C' },
+    selectedChip: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
     selectedChipText: { color: '#FFFFFF' }
 });
