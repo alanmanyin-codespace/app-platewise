@@ -4,14 +4,14 @@
 
 Create a user profile that helps All About Savings personalize grocery recommendations and meal planning.
 
-The first version should gather the user’s preferences through a centralized, option-based setup workflow in the general app UI. The profile should then be created and stored when the user saves the setup, or from available login information when the user signs in.
+The first version should gather the user’s preferences through a centered, option-based single-question wizard in the general app UI. The profile should then be created and stored when the user saves the setup, or from available login information when the user signs in.
 
 ## User scenario
 
 1. A new user opens the app.
-2. The app opens one profile setup screen with grouped preference sections.
+2. The app opens a centered profile wizard with one topic shown at a time.
 3. The user selects options for grocery savings, allergies, dietary preferences, meal planning, and stores.
-4. The user can optionally enter a name and save a partially completed profile.
+4. The user moves through the wizard with Back and Next controls, then saves a partially completed profile.
 5. The app stores the profile locally and uses the selected allergies to filter recipe suggestions.
 6. If the user logs in, the profile is associated with that login identity and can be reused across sessions.
 7. The user can later review or update their preferences from the profile area.
@@ -26,20 +26,20 @@ The profile should initially support these areas:
 - Meal-planning preferences
 - Preferred grocery stores
 
-## Centralized setup UI
+## Centered single-question wizard
 
-The setup screen should use a single scrollable workflow with:
+The setup screen should use a focused stepper workflow with:
 
-- A short explanation of how preferences will be used
-- An optional name field
-- Grouped option sections for each profile area
+- One question/topic visible at the center of the page at a time
+- A step count and progress bar
+- Back and Next navigation
+- An optional name step
 - Single-select options for household size and savings goal
 - Multi-select options for allergies, dietary preferences, meal planning, and stores
 - Explicit `None` and `No preference` options that are exclusive of other choices
-- A visible completion indicator
-- A single save action
+- A final save action on the last step
 
-The flow should feel like a quick, centralized preference setup rather than a chat or multi-page form.
+The flow should feel like a calm, focused sequence rather than a chat or a dense form.
 
 ## Profile creation behavior
 
@@ -75,8 +75,8 @@ The name is optional. Other fields can be left blank and completed later.
 - What login provider and identity model will be used?
 - Where should anonymous profiles be stored, and how should they merge with a logged-in profile?
 - Which profile fields should directly affect grocery deals, meal plans, and store recommendations?
-- Should additional preference groups be added to the centralized setup screen?
+- Should additional preference groups be added to the centered wizard?
 
 ## Current implementation status
 
-The profile state, local persistence, profile review/edit screen, and centralized option-based setup workflow are implemented on the feature branch. Backend identity association remains future work.
+The profile state, local persistence, profile review/edit screen, and centered option-based wizard are implemented on the feature branch. Backend identity association remains future work.
