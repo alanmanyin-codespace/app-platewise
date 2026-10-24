@@ -61,15 +61,21 @@ const styles = StyleSheet.create({
             "marginLeft": 8
         },
         "dealsScrollViewContentContainer": {
+            "alignSelf": "center",
+            "maxWidth": 1120,
             "paddingBottom": 24,
             "paddingLeft": 20,
-            "paddingRight": 20
+            "paddingRight": 20,
+            "width": "100%"
         },
         "exploreHeader": {
+            "alignSelf": "center",
+            "maxWidth": 1120,
             "paddingBottom": 10,
             "paddingLeft": 20,
             "paddingRight": 20,
-            "paddingTop": 12
+            "paddingTop": 12,
+            "width": "100%"
         },
         "exploreSafeArea": {
             "backgroundColor": "#FFFFFF",
@@ -79,8 +85,11 @@ const styles = StyleSheet.create({
         },
         "filtersScrollContentContainer": {
             "alignItems": "center",
+            "alignSelf": "center",
+            "maxWidth": 1120,
             "paddingLeft": 20,
-            "paddingRight": 20
+            "paddingRight": 20,
+            "width": "100%"
         },
         "locationGroup": {
             "alignItems": "center",

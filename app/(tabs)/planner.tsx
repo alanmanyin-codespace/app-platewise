@@ -82,9 +82,12 @@ const styles = StyleSheet.create({
         marginTop: 2
     },
     planListScrollContentContainer: {
+        alignSelf: 'center',
+        maxWidth: 960,
         paddingBottom: 24,
         paddingLeft: 20,
-        paddingRight: 20
+        paddingRight: 20,
+        width: '100%'
     },
     planSavedCol: {
         alignItems: 'flex-end'
@@ -102,10 +105,13 @@ const styles = StyleSheet.create({
         marginTop: 2
     },
     plannerHeader: {
+        alignSelf: 'center',
+        maxWidth: 960,
         paddingBottom: 14,
         paddingLeft: 20,
         paddingRight: 20,
-        paddingTop: 12
+        paddingTop: 12,
+        width: '100%'
     },
     plannerSafeArea: {
         backgroundColor: '#FFFFFF',

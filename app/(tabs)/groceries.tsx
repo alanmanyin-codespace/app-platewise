@@ -88,10 +88,13 @@ const styles = StyleSheet.create({
         fontWeight: '600'
     },
     groceriesHeader: {
+        alignSelf: 'center',
+        maxWidth: 960,
         paddingBottom: 14,
         paddingLeft: 20,
         paddingRight: 20,
-        paddingTop: 12
+        paddingTop: 12,
+        width: '100%'
     },
     groceriesSafeArea: {
         backgroundColor: '#FFFFFF',
@@ -115,9 +118,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between'
     },
     groceryListScrollContentContainer: {
+        alignSelf: 'center',
+        maxWidth: 960,
         paddingBottom: 24,
         paddingLeft: 20,
-        paddingRight: 20
+        paddingRight: 20,
+        width: '100%'
     },
     itemsLeft: {
         color: '#484848',

@@ -78,7 +78,7 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-    content: { paddingBottom: 32, paddingHorizontal: 20, paddingTop: 12 },
+    content: { alignSelf: 'center', maxWidth: 760, paddingBottom: 32, paddingHorizontal: 20, paddingTop: 12, width: '100%' },
     empty: { color: '#717171', fontSize: 13, marginBottom: 24 },
     interviewButton: { alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 10, flexDirection: 'row', justifyContent: 'center', marginBottom: 24, padding: 13 },
     interviewButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700', marginLeft: 7 },

@@ -1,6 +1,7 @@
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { Tabs } from 'expo-router';
 import { theme } from '@/lib/theme';
+import { Platform } from 'react-native';
 
 export default function Layout() {
     return (
@@ -10,7 +11,10 @@ export default function Layout() {
                 tabBarActiveTintColor: theme.colors.primary,
                 tabBarInactiveTintColor: '#717171',
                 tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-                tabBarStyle: { backgroundColor: '#FFFFFF', height: 60 }
+                tabBarStyle:
+                    Platform.OS === 'web'
+                        ? { alignSelf: 'center', backgroundColor: '#FFFFFF', borderTopColor: '#EBEBEB', borderTopWidth: 1, height: 64, maxWidth: 860, width: '100%' }
+                        : { backgroundColor: '#FFFFFF', height: 60 }
             }}
         >
             <Tabs.Screen
