@@ -22,6 +22,8 @@ export type InterviewState = {
     answers: ProfilePatch;
 };
 
+export const PROFILE_ROUTE = '/profile';
+
 export const INTERVIEW_QUESTIONS: Record<InterviewTopic, string> = {
     name: 'Hi! I can help you find better grocery deals. What should I call you?',
     household: 'Who are you usually planning groceries for? Tell me how many people you shop for.',

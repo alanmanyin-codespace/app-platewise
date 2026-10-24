@@ -2,6 +2,7 @@ import { useAtom } from '@/lib/useAtom';
 import {
     applyInterviewAnswer,
     createInitialInterviewState,
+    PROFILE_ROUTE,
     type InterviewTopic
 } from '@/logic/profile/interview';
 import { loadProfile, saveProfile } from '@/logic/profile/profileStorage';
@@ -95,7 +96,7 @@ export default function ProfileInterview() {
                         <Text style={styles.eyebrow}>SAVINGS PROFILE</Text>
                         <Text style={styles.title}>Let&apos;s get to know you</Text>
                     </View>
-                    <Pressable onPress={() => router.back()}>
+                    <Pressable onPress={() => router.replace(PROFILE_ROUTE)}>
                         <Text style={styles.close}>Close</Text>
                     </Pressable>
                 </View>

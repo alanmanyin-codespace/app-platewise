@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
     applyInterviewAnswer,
     createInitialInterviewState,
-    nextInterviewTopic
+    nextInterviewTopic,
+    PROFILE_ROUTE
 } from './interview';
 
 describe('profile interview', () => {
@@ -68,5 +69,9 @@ describe('profile interview', () => {
         expect(nextInterviewTopic('name')).toBe('household');
         expect(nextInterviewTopic('stores')).toBe('confirmation');
         expect(nextInterviewTopic('confirmation')).toBe('confirmation');
+    });
+
+    it('uses the profile route when closing the interview', () => {
+        expect(PROFILE_ROUTE).toBe('/profile');
     });
 });
