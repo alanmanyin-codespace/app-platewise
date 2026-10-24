@@ -21,6 +21,7 @@
     "@formatjs/intl-pluralrules": "6.3.16",
     "@formatjs/intl-segmenter": "12.2.15",
     "@formatjs/intl-supportedvaluesof": "2.3.11",
+    "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-vector-icons/material-design-icons": "14.0.0",
     "array.prototype.tosorted": "1.1.4",
     "expo": "^58.0.16",
@@ -53,5 +54,8 @@
     "vitest": "4.1.6"
   },
   "private": true,
-  "allowScripts": { "fsevents@2.3.3": true, "unrs-resolver@1.12.2": true }
+  "allowScripts": {
+    "fsevents@2.3.3": true,
+    "unrs-resolver@1.12.2": true
+  }
 }
