@@ -146,7 +146,7 @@ export default function ProfileInterview() {
                             <Text style={[styles.backText, stepIndex === 0 && styles.disabledText]}>Back</Text>
                         </Pressable>
                         <Pressable accessibilityRole='button' disabled={saving} onPress={isLastStep ? saveSetup : goNext} style={[styles.nextButton, saving && styles.disabledNextButton]}>
-                            <Text style={styles.nextText}>{saving ? 'Saving…' : isLastStep ? 'Save profile' : 'Next'}</Text>
+                            <Text style={styles.nextText}>{saving ? 'Saving…' : isLastStep ? 'Create profile' : 'Next'}</Text>
                         </Pressable>
                     </View>
                     <Text style={styles.editHint}>You can change these preferences later from your profile.</Text>
