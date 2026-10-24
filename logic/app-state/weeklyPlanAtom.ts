@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
+import type { MealPlanDay } from '@/logic/types';
 
-export const weeklyPlanAtom = atom<any[]>([
+export const weeklyPlanAtom = atom<MealPlanDay[]>([
     {
         day: 'Mon',
         meal: 'Maple-Glazed Salmon & Asparagus',

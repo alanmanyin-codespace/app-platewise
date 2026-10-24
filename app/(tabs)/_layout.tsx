@@ -17,7 +17,7 @@ export default function Layout() {
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialDesignIcons color={null} name='tag-outline' size={null} />
+                        <MaterialDesignIcons color={color} name='tag-outline' size={size} />
                     ),
                     title: 'Deals'
                 }}
@@ -28,9 +28,9 @@ export default function Layout() {
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialDesignIcons
-                            color={null}
+                            color={color}
                             name='calendar-month-outline'
-                            size={null}
+                            size={size}
                         />
                     ),
                     title: 'Meal Plan'
@@ -41,7 +41,7 @@ export default function Layout() {
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialDesignIcons color={null} name='cart-outline' size={null} />
+                        <MaterialDesignIcons color={color} name='cart-outline' size={size} />
                     ),
                     title: 'Groceries'
                 }}
@@ -51,7 +51,7 @@ export default function Layout() {
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialDesignIcons color={null} name='account-cog-outline' size={null} />
+                        <MaterialDesignIcons color={color} name='account-cog-outline' size={size} />
                     ),
                     title: 'Savings Hub'
                 }}

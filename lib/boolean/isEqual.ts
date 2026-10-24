@@ -18,7 +18,7 @@ export function isEqual(left: any, right: any, caseSensitive = false): boolean {
         } else {
             return false;
         }
-    } else if (typeof left === 'object' && typeof right === 'object') {
+    } else if (left !== null && right !== null && typeof left === 'object' && typeof right === 'object') {
         const leftKeys = Object.keys(left);
         const rightKeys = Object.keys(right);
         if (leftKeys.length !== rightKeys.length) {

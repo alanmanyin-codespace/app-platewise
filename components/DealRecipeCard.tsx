@@ -5,12 +5,16 @@ import { openRecipeDetail } from '@/logic/actions/openRecipeDetail';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { Recipe } from '@/logic/types';
 
 type Props = {
-    recipeData?: object;
+    recipeData?: Recipe;
 };
 
-export function DealRecipeCard({ recipeData = {} }: Props) {
+export function DealRecipeCard({ recipeData }: Props) {
+    if (!recipeData) {
+        return null;
+    }
     return (
         <Pressable
             style={styles.cardPressable}

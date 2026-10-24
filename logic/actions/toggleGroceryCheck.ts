@@ -10,6 +10,8 @@ type Params = {
 export function toggleGroceryCheck({ itemId }: Params) {
     store.set(
         groceryItemsListAtom,
-        undefined(store.get(groceryItemsListAtom), (item) => item)
+        store.get(groceryItemsListAtom).map((item) =>
+            item.id === itemId ? { ...item, completed: !item.completed } : item
+        )
     );
 }

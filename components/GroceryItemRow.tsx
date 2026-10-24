@@ -4,12 +4,16 @@ import { formatNumber } from '@/lib/math/formatNumber';
 import { toggleGroceryCheck } from '@/logic/actions/toggleGroceryCheck';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { GroceryItem } from '@/logic/types';
 
 type Props = {
-    groceryItemData?: object;
+    groceryItemData?: GroceryItem;
 };
 
-export function GroceryItemRow({ groceryItemData = {} }: Props) {
+export function GroceryItemRow({ groceryItemData }: Props) {
+    if (!groceryItemData) {
+        return null;
+    }
     return (
         <Pressable
             style={styles.groceryRowPress}

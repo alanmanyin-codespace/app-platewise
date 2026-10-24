@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
+import type { GroceryItem } from '@/logic/types';
 
-export const groceryItemsListAtom = atom<any[]>([
+export const groceryItemsListAtom = atom<GroceryItem[]>([
     {
         id: 'g1',
         name: 'Atlantic Salmon Fillets (Metro)',

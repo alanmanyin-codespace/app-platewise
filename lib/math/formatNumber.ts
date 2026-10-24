@@ -1,6 +1,4 @@
-import type { NumberFormatOptions } from '@formatjs/ecma402-abstract';
-
-export type Options = NumberFormatOptions & {
+export type Options = Intl.NumberFormatOptions & {
     locale?: string;
 };
 

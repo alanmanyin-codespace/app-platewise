@@ -15,9 +15,11 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatNumber } from '@/lib/math/formatNumber';
 
 export default function Groceries() {
     const [groceryItemsList] = useAtom(groceryItemsListAtom);
+    const total = groceryItemsList.reduce((sum, item) => sum + item.flyerPrice, 0);
 
     return (
         <>
@@ -65,13 +67,13 @@ export default function Groceries() {
                             <Text style={styles.flyerMatched}>All items flyer price-verified</Text>
                         </View>
                         <View style={styles.totalBadge}>
-                            <Text style={styles.totalBadgeText}>Total &#36;27.72</Text>
+                            <Text style={styles.totalBadgeText}>Total ${formatNumber(total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
                         </View>
                     </View>
                 </View>
                 <ScrollView contentContainerStyle={styles.groceryListScrollContentContainer}>
-                    {map(groceryItemsList, (item, index) => (
-                        <GroceryItemRow groceryItemData={item} />
+                    {map(groceryItemsList, (item) => (
+                        <GroceryItemRow key={item.id} groceryItemData={item} />
                     ))}
                 </ScrollView>
             </SafeAreaView>

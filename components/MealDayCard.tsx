@@ -2,12 +2,16 @@ import { join } from '@/lib/array/join';
 import { formatNumber } from '@/lib/math/formatNumber';
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
+import type { MealPlanDay } from '@/logic/types';
 
 type Props = {
-    dayPlanData?: object;
+    dayPlanData?: MealPlanDay;
 };
 
-export function MealDayCard({ dayPlanData = {} }: Props) {
+export function MealDayCard({ dayPlanData }: Props) {
+    if (!dayPlanData) {
+        return null;
+    }
     return (
         <View style={styles.dayCardWrap}>
             <View style={styles.dayPillCol}>

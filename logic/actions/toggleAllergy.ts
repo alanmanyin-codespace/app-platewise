@@ -1,4 +1,5 @@
 import { find } from '@/lib/array/find';
+import { filter } from '@/lib/array/filter';
 import { compare } from '@/lib/boolean/compare';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
 import { getDefaultStore } from 'jotai';
@@ -13,9 +14,9 @@ export function toggleAllergy({ allergen }: Params) {
     if (find(store.get(allergyFiltersAtom), (item) => compare(item, allergen, 'equals'))) {
         store.set(
             allergyFiltersAtom,
-            undefined(store.get(allergyFiltersAtom), (item) => compare(item, allergen, 'notEquals'))
+            filter(store.get(allergyFiltersAtom), (item) => compare(item, allergen, 'notEquals'))
         );
     } else {
-        store.set(allergyFiltersAtom, undefined([store.get(allergyFiltersAtom), allergen]));
+        store.set(allergyFiltersAtom, [...store.get(allergyFiltersAtom), allergen]);
     }
 }

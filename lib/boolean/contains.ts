@@ -8,8 +8,8 @@ export function contains(left: any, right: any, caseSensitive = false): boolean 
         return leftValue.includes(rightValue);
     } else if (Array.isArray(left)) {
         return left.some((item) => isEqual(item, right, caseSensitive));
-    } else if (typeof left === 'object') {
-        if (typeof right === 'object') {
+    } else if (left !== null && typeof left === 'object') {
+        if (right !== null && typeof right === 'object') {
             return Object.keys(right).every(
                 (rightKey) =>
                     rightKey in left && isEqual(left[rightKey], right[rightKey], caseSensitive)

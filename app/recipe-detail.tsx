@@ -18,7 +18,7 @@ export default function RecipeDetail() {
 
     return (
         <>
-            <StatusBar barStyle='light-content' translucent />
+            <StatusBar barStyle='light-content' />
             <View style={styles.detailRoot}>
                 <ScrollView contentContainerStyle={styles.detailScrollContentContainer}>
                     <View style={styles.detailHeroContainer}>

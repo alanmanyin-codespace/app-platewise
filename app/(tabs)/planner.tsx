@@ -6,9 +6,12 @@ import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-
 import { Tabs } from 'expo-router';
 import { ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatNumber } from '@/lib/math/formatNumber';
 
 export default function Planner() {
     const [weeklyPlan] = useAtom(weeklyPlanAtom);
+    const planCost = weeklyPlan.reduce((sum, item) => sum + item.cost, 0);
+    const planSavings = weeklyPlan.reduce((sum, item) => sum + item.savings, 0);
 
     return (
         <>
@@ -35,20 +38,20 @@ export default function Planner() {
                     <View style={styles.savingsOverviewCard}>
                         <View>
                             <Text style={styles.planCostLabel}>Estimated Week Cost</Text>
-                            <Text style={styles.planCostNum}>&#36;71.57</Text>
+                            <Text style={styles.planCostNum}>${formatNumber(planCost, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
                             <Text style={styles.familyCount}>7 dinners • 4 servings each</Text>
                         </View>
                         <View style={styles.divider} />
                         <View style={styles.planSavedCol}>
                             <Text style={styles.planSavedLabel}>Total Saved</Text>
-                            <Text style={styles.planSavedNum}>&#36;51.80</Text>
+                            <Text style={styles.planSavedNum}>${formatNumber(planSavings, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
                             <Text style={styles.savingsPercent}>42% less than normal</Text>
                         </View>
                     </View>
                 </View>
                 <ScrollView contentContainerStyle={styles.planListScrollContentContainer}>
-                    {map(weeklyPlan, (item, index) => (
-                        <MealDayCard dayPlanData={item} />
+                    {map(weeklyPlan, (item) => (
+                        <MealDayCard key={item.day} dayPlanData={item} />
                     ))}
                 </ScrollView>
             </SafeAreaView>

@@ -1,6 +1,7 @@
 import { atom } from 'jotai';
+import type { Recipe } from '@/logic/types';
 
-export const selectedRecipeAtom = atom<object>({
+export const selectedRecipeAtom = atom<Recipe>({
     id: 'r1',
     title: 'Maple-Glazed Salmon & Asparagus',
     store: 'Metro',
