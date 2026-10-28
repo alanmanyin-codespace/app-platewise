@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
         },
         "dealsScrollViewContentContainer": {
             "alignSelf": "center",
-            "maxWidth": 1120,
+            "maxWidth": 960,
             "paddingBottom": 24,
             "paddingLeft": 20,
             "paddingRight": 20,
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
         },
         "exploreHeader": {
             "alignSelf": "center",
-            "maxWidth": 1120,
+            "maxWidth": 960,
             "paddingBottom": 10,
             "paddingLeft": 20,
             "paddingRight": 20,
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
         "filtersScrollContentContainer": {
             "alignItems": "center",
             "alignSelf": "center",
-            "maxWidth": 1120,
+            "maxWidth": 960,
             "paddingLeft": 20,
             "paddingRight": 20,
             "width": "100%"

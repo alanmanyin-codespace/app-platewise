@@ -284,7 +284,10 @@ const styles = StyleSheet.create({
         flexShrink: 1
     },
     detailScrollContentContainer: {
-        paddingBottom: 110
+        alignSelf: 'center',
+        maxWidth: 760,
+        paddingBottom: 110,
+        width: '100%'
     },
     detailTitle: {
         color: '#222222',
