@@ -24,11 +24,14 @@ export default function RecipeDetail() {
                 <ScrollView contentContainerStyle={styles.detailScrollContentContainer}>
                     <View style={styles.detailHeroContainer}>
                         <Image
+                            accessibilityLabel={`${selectedRecipe.title}, plated`}
                             contentFit='cover'
                             source={selectedRecipe.imageUrl}
                             style={styles.detailHeroImage}
                         />
                         <TouchableOpacity
+                            accessibilityRole='button'
+                            accessibilityLabel='Go back'
                             style={styles.backNavButton}
                             onPress={() => {
                                 router.back();
@@ -55,7 +58,9 @@ export default function RecipeDetail() {
                                 </Text>
                             </View>
                         </View>
-                        <Text style={styles.detailTitle}>{selectedRecipe.title}</Text>
+                        <Text accessibilityRole='header' accessibilityLevel={1} style={styles.detailTitle}>
+                            {selectedRecipe.title}
+                        </Text>
                         <View style={styles.metricsBar}>
                             <View style={styles.metricTime}>
                                 <MaterialDesignIcons
@@ -83,7 +88,9 @@ export default function RecipeDetail() {
                                 <Text style={styles.timeVal}>{selectedRecipe.calories}</Text>
                             </View>
                         </View>
-                        <Text style={styles.ingHeading}>Ingredients &amp; Flyer Deals</Text>
+                        <Text accessibilityRole='header' accessibilityLevel={2} style={styles.ingHeading}>
+                            Ingredients &amp; Flyer Deals
+                        </Text>
                         {map(
                             selectedRecipe.ingredients,
                             ({ flyerPrice, isFlyerDeal, name, regPrice }, index) => (
@@ -127,7 +134,9 @@ export default function RecipeDetail() {
                                 </View>
                             )
                         )}
-                        <Text style={styles.stepsHeading}>Step-by-Step Instructions</Text>
+                        <Text accessibilityRole='header' accessibilityLevel={2} style={styles.stepsHeading}>
+                            Step-by-Step Instructions
+                        </Text>
                         {map(selectedRecipe.steps, (item, index) => (
                             <View key={index} style={styles.stepRow}>
                                 <View style={styles.stepNumCircle}>
@@ -176,6 +185,8 @@ export default function RecipeDetail() {
                         </Text>
                     </View>
                     <TouchableOpacity
+                        accessibilityRole='button'
+                        accessibilityLabel='Add all ingredients to grocery list'
                         style={styles.addGroceriesBtn}
                         onPress={() => {
                             addRecipeIngredientsToGroceries({
@@ -313,7 +324,7 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end'
     },
     ingRegPrice: {
-        color: '#B0B0B0',
+        color: theme.colors.muted,
         fontSize: 11,
         textDecorationLine: 'line-through'
     },
@@ -346,7 +357,7 @@ const styles = StyleSheet.create({
         fontWeight: '800'
     },
     reg: {
-        color: '#B0B0B0',
+        color: theme.colors.muted,
         fontSize: 12,
         marginLeft: 6,
         textDecorationLine: 'line-through'

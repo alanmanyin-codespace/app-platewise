@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatNumber } from '@/lib/math/formatNumber';
+import { theme } from '@/lib/theme';
 
 export default function Groceries() {
     const [groceryItemsList] = useAtom(groceryItemsListAtom);
@@ -36,7 +37,9 @@ export default function Groceries() {
             <SafeAreaView edges={['top']} style={styles.groceriesSafeArea}>
                 <View style={styles.groceriesHeader}>
                     <View style={styles.groceriesTopLine}>
-                        <Text style={styles.groceriesTitle}>Smart Shopping List</Text>
+                        <Text accessibilityRole='header' accessibilityLevel={1} style={styles.groceriesTitle}>
+                            Smart Shopping List
+                        </Text>
                         <TouchableOpacity
                             onPress={() => {
                                 Share.share({
@@ -83,7 +86,7 @@ export default function Groceries() {
 
 const styles = StyleSheet.create({
     flyerMatched: {
-        color: '#008A05',
+        color: theme.colors.success,
         fontSize: 11,
         fontWeight: '600'
     },

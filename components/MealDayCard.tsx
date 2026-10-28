@@ -18,7 +18,12 @@ export function MealDayCard({ dayPlanData }: Props) {
             <View style={styles.dayPillCol}>
                 <Text style={styles.dayText}>{dayPlanData.day}</Text>
             </View>
-            <Image contentFit='cover' source={dayPlanData.image} style={styles.dayMealThumb} />
+            <Image
+                accessibilityLabel={dayPlanData.meal ? `${dayPlanData.meal}, plated` : ''}
+                contentFit='cover'
+                source={dayPlanData.image}
+                style={styles.dayMealThumb}
+            />
             <View style={styles.dayPlanDetails}>
                 <Text numberOfLines={1} style={styles.dayMealTitle}>
                     {dayPlanData.meal}

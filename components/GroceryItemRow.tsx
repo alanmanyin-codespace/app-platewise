@@ -1,6 +1,7 @@
 import { join } from '@/lib/array/join';
 import { conditionalSafe } from '@/lib/boolean/conditional';
 import { formatNumber } from '@/lib/math/formatNumber';
+import { theme } from '@/lib/theme';
 import { toggleGroceryCheck } from '@/logic/actions/toggleGroceryCheck';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -16,6 +17,10 @@ export function GroceryItemRow({ groceryItemData }: Props) {
     }
     return (
         <Pressable
+            accessibilityRole='checkbox'
+            aria-checked={Boolean(groceryItemData.completed)}
+            accessibilityLabel={groceryItemData.name}
+            accessibilityHint='Marks this item as picked up'
             style={styles.groceryRowPress}
             onPress={() => {
                 toggleGroceryCheck({ itemId: groceryItemData.id });
@@ -25,7 +30,7 @@ export function GroceryItemRow({ groceryItemData }: Props) {
                 <MaterialDesignIcons
                     color={conditionalSafe(
                         [{ condition: `${groceryItemData.completed} = true`, value: '#008A05' }],
-                        '#B0B0B0'
+                        theme.colors.muted
                     )}
                     name={conditionalSafe(
                         [
@@ -46,7 +51,7 @@ export function GroceryItemRow({ groceryItemData }: Props) {
                             [
                                 {
                                     condition: `${groceryItemData.completed} = true`,
-                                    value: '#B0B0B0'
+                                    value: theme.colors.muted
                                 }
                             ],
                             '#222222'
@@ -125,7 +130,7 @@ const styles = StyleSheet.create({
         marginLeft: 8
     },
     groceryRegPrice: {
-        color: '#B0B0B0',
+        color: theme.colors.muted,
         fontSize: 11,
         textDecorationLine: 'line-through'
     },
@@ -148,7 +153,7 @@ const styles = StyleSheet.create({
         marginTop: 3
     },
     recipeOrigin: {
-        color: '#B0B0B0',
+        color: theme.colors.muted,
         fontSize: 11
     },
     storeTag: {

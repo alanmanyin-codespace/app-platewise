@@ -12,4 +12,13 @@ declare module 'react-native' {
     interface RefreshControlProps {
         size?: 'default' | 'large';
     }
+
+    interface TextProps {
+        /**
+         * react-native-web only. Combined with accessibilityRole='header' it
+         * picks the heading element: level 2 renders <h2>. Without it a header
+         * always renders <h1>, which flattens the document outline.
+         */
+        accessibilityLevel?: number;
+    }
 }

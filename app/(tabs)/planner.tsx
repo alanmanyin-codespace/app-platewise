@@ -31,7 +31,9 @@ export default function Planner() {
             />
             <SafeAreaView edges={['top']} style={styles.plannerSafeArea}>
                 <View style={styles.plannerHeader}>
-                    <Text style={styles.plannerTitle}>This Week&apos;s Menu</Text>
+                    <Text accessibilityRole='header' accessibilityLevel={1} style={styles.plannerTitle}>
+                        This Week&apos;s Menu
+                    </Text>
                     <Text style={styles.plannerSubtitle}>
                         Optimized for maximum flyer savings across your local stores
                     </Text>

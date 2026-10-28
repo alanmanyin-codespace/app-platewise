@@ -18,13 +18,21 @@ export function DealRecipeCard({ recipeData }: Props) {
     }
     return (
         <Pressable
+            accessibilityRole='button'
+            accessibilityLabel={`${recipeData.title}, ${recipeData.store}, $${recipeData.flyerPrice} per meal`}
+            accessibilityHint='Opens the full recipe'
             style={styles.cardPressable}
             onPress={() => {
                 openRecipeDetail({ recipeData });
             }}
         >
             <View style={styles.cardImageContainer}>
-                <Image contentFit='cover' source={recipeData.imageUrl} style={styles.cardImage} />
+                <Image
+                    accessibilityLabel={`${recipeData.title}, plated`}
+                    contentFit='cover'
+                    source={recipeData.imageUrl}
+                    style={styles.cardImage}
+                />
                 <View style={styles.savingsPill}>
                     <MaterialDesignIcons color='#FFFFFF' name='tag-outline' size={13} />
                     <Text style={styles.savingsPillText}>
@@ -167,7 +175,7 @@ const styles = StyleSheet.create({
         paddingTop: 8
     },
     regularPriceValue: {
-        color: '#B0B0B0',
+        color: theme.colors.muted,
         fontSize: 13,
         marginLeft: 6,
         textDecorationLine: 'line-through'

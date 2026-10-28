@@ -7,7 +7,7 @@ export const theme = {
         primary: '#2D6A5B',
         primaryDark: '#234F44',
         primarySoft: '#EEF5F1',
-        success: '#008A05',
+        success: '#007A04',
         text: '#26352F',
         white: '#FFFFFF'
     }

@@ -53,16 +53,25 @@ export default function Profile() {
             <Tabs.Screen options={{ headerShown: false, tabBarIcon: ({ color, size }) => <MaterialDesignIcons color={color} name='account-cog-outline' size={size} />, title: 'Savings Hub' }} />
             <SafeAreaView edges={['top']} style={styles.safeArea}>
                 <ScrollView contentContainerStyle={styles.content}>
-                    <Text style={styles.title}>Savings &amp; Allergies</Text>
+                    <Text accessibilityRole='header' accessibilityLevel={1} style={styles.title}>
+                        Savings &amp; Allergies
+                    </Text>
                     <Text style={styles.subtitle}>Control what recipes are generated from flyer sale deals</Text>
                     <ProfileSummaryCard profile={profile} />
-                    <Pressable onPress={() => router.push('/profile-interview')} style={styles.interviewButton}>
+                    <Pressable
+                        accessibilityRole='button'
+                        accessibilityLabel={profile ? 'Continue profile interview' : 'Start profile interview'}
+                        onPress={() => router.push('/profile-interview')}
+                        style={styles.interviewButton}
+                    >
                         <MaterialDesignIcons color='#FFFFFF' name='message-text-outline' size={18} />
                         <Text style={styles.interviewButtonText}>{profile ? 'Continue profile interview' : 'Start profile interview'}</Text>
                     </Pressable>
                     {profile ? <ProfilePreferenceEditor profile={profile} onToggle={handleToggle} /> : <Text style={styles.empty}>Your preferences will appear here after the interview.</Text>}
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Tracked Grocery Stores</Text>
+                        <Text accessibilityRole='header' accessibilityLevel={2} style={styles.sectionTitle}>
+                            Tracked Grocery Stores
+                        </Text>
                         <Text style={styles.sectionDescription}>Digital flyers parsed every Wednesday night for current discounts</Text>
                         {canadianStores.map((store) => (
                             <View key={store.name} style={styles.storeRow}>
