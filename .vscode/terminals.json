@@ -1,0 +1,9 @@
+{
+  "autorun": true,
+  "terminals": [
+    {
+      "name": "Expo Web Dev Server",
+      "commands": ["npm run web"]
+    }
+  ]
+}
