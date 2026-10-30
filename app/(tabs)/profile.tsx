@@ -50,11 +50,11 @@ export default function Profile() {
     return (
         <>
             <StatusBar barStyle='dark-content' />
-            <Tabs.Screen options={{ headerShown: false, tabBarIcon: ({ color, size }) => <MaterialDesignIcons color={color} name='account-cog-outline' size={size} />, title: 'Savings Hub' }} />
+            <Tabs.Screen options={{ headerShown: false, tabBarIcon: ({ color, size }) => <MaterialDesignIcons color={color} name='account-cog-outline' size={size} />, title: 'Profile' }} />
             <SafeAreaView edges={['top']} style={styles.safeArea}>
                 <ScrollView contentContainerStyle={styles.content}>
                     <Text accessibilityRole='header' accessibilityLevel={1} style={styles.title}>
-                        Savings &amp; Allergies
+                        Profile
                     </Text>
                     <Text style={styles.subtitle}>Control what recipes are generated from flyer sale deals</Text>
                     <ProfileSummaryCard profile={profile} />

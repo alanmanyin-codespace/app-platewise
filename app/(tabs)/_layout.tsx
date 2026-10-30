@@ -95,7 +95,7 @@ export default function Layout() {
                     tabBarIcon: ({ color, size }) => (
                         <MaterialDesignIcons color={color} name='account-cog-outline' size={size} />
                     ),
-                    title: 'Savings Hub'
+                    title: 'Profile'
                 }}
             />
         </Tabs>

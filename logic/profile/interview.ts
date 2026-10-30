@@ -98,7 +98,7 @@ export function applyInterviewAnswer(
                     'assistant',
                     confirmed
                         ? 'Thanks — your profile is ready.'
-                        : 'No problem. You can keep refining your profile from the Savings Hub.',
+                        : 'No problem. You can keep refining your profile from the Profile tab.',
                     state.messages.length + 1
                 )
             ]
