@@ -1,30 +1,31 @@
 # PlateWise — Pantry Feature Development TODO
 
-> **Status:** Planned · Tasks are unchecked until implementation is verified.  
+> **Status:** Deferred / postponed — do not start pantry or profile initialization during the current guest-menu sprint. Tasks remain unchecked until verified.  
 > **Related pitch:** [PlateWise Pitch Deck](../reference/pitch-deck.md) — especially Slides 4, 6, 7, and 10.  
-> **Goal:** Build a pantry-aware restocking experience that identifies what users already own and adds only missing ingredients to their grocery list.
+> **Current priority:** [Guest Homepage & General Menu TODO](guest-menu-todo.md).
+> **Later goal:** Build a pantry-aware restocking experience that identifies what users already own and adds only missing ingredients to their grocery list.
 
-## P0 — Foundation
+## Deferred P0 — Foundation
 
 - [ ] **Define pantry data models.** Create `PantryItem`, `RecipeRequirement`, and `ProductOffer` types, including quantities, units, and normalized ingredient IDs.
 - [ ] **Implement pantry state management.** Use Jotai for pantry inventory state and AsyncStorage to persist changes across application restarts.
 - [ ] **Build Pantry Management UI.** Let users add, edit, delete, and view pantry ingredients with quantities and units.
 
-## P0 — Core Logic
+## Deferred P0 — Core Logic
 
 - [ ] **Implement ingredient normalization.** Match ingredients by normalized identifiers and convert compatible units (e.g., kg ↔ g and L ↔ ml). Don't combine incompatible units without an explicit conversion rule.
 - [ ] **Develop the smart restocking calculator.** Combine requirements across planned recipes, subtract usable pantry stock, and calculate missing quantities. Planning alone must **not** consume inventory.
 
-## P0 — Integration
+## Deferred P0 — Integration
 
 - [ ] **Integrate with the grocery shopping list.** Generate a shopping list containing only missing ingredients. Consolidate duplicate requirements across recipes and avoid duplicate purchases.
 
-## P1 — Enhancements
+## Deferred P1 — Enhancements
 
 - [ ] **Add package-aware pricing.** Match missing ingredient quantities to actual purchasable package sizes and estimate shopping totals using available product prices. Clearly mark demonstration prices.
 - [ ] **Synchronize purchases and consumption.** Change pantry quantities only after confirmed purchases or cooking; prevent double-counting when shopping items are checked or revisited.
 
-## P2 — Enhancements
+## Deferred P2 — Enhancements
 
 - [ ] **Implement expiration and low-stock tracking.** Support optional expiration dates and stock thresholds; display use-it-soon and low-stock reminders.
 - [ ] **Introduce pantry-aware meal recommendations.** Favor recipes that use existing ingredients, particularly food approaching its expiration date.
@@ -33,11 +34,11 @@
 
 - [ ] **Explore barcode scanning and fridge photo recognition.** Evaluate assisted item entry only after the manual inventory and restocking flow have been validated with users.
 
-## P0 — Quality
+## Deferred P0 — Quality
 
 - [ ] **Add unit tests and acceptance tests.** Cover ingredient matching, unit conversions, duplicate consolidation, partial stock, persistence, and shopping-list calculations.
 
-## First Milestone — Pantry-Aware Restocking MVP
+## Future Milestone — Pantry-Aware Restocking MVP
 
 The first milestone is complete when all P0 tasks above are implemented and verified.
 
