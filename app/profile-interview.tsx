@@ -1,4 +1,5 @@
 import { useAtom } from '@/lib/useAtom';
+import { ProfileAccessGate } from '@/components/ProfileAccessGate';
 import { theme } from '@/lib/theme';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
 import { PROFILE_ROUTE } from '@/logic/profile/interview';
@@ -11,13 +12,13 @@ import {
     PROFILE_WIZARD_STEPS,
     type ProfileWizardStep
 } from '@/logic/profile/profileWizard';
-import { loadProfile, saveProfile } from '@/logic/profile/profileStorage';
+import { saveProfile } from '@/logic/profile/profileStorage';
 import { applyProfilePatch, createProfile, profileAtom, profileHydratedAtom } from '@/logic/profile/profileState';
-import type { ProfilePatch } from '@/logic/profile/types';
+import type { Profile, ProfilePatch } from '@/logic/profile/types';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 /**
@@ -44,11 +45,29 @@ const emptySelections: Record<ProfileOptionField, string[]> = {
 };
 
 export default function ProfileInterview() {
+    return <ProfileAccessGate><ProfileInterviewContent /></ProfileAccessGate>;
+}
+
+function ProfileInterviewContent() {
+    const [profile] = useAtom(profileAtom);
+    const [hydrated] = useAtom(profileHydratedAtom);
+    if (!hydrated) return <SafeAreaView style={styles.safeArea}><Text>Loading profile…</Text></SafeAreaView>;
+    return <InterviewForm key={profile?.id ?? 'guest'} initialProfile={profile} />;
+}
+
+function InterviewForm({ initialProfile }: { initialProfile: Profile | null }) {
     const [profile, setProfile] = useAtom(profileAtom);
     const [, setAllergyFilters] = useAtom(allergyFiltersAtom);
-    const [, setHydrated] = useAtom(profileHydratedAtom);
-    const [displayName, setDisplayName] = useState('');
-    const [selections, setSelections] = useState(emptySelections);
+    const [hydrated] = useAtom(profileHydratedAtom);
+    const [displayName, setDisplayName] = useState(initialProfile?.displayName ?? '');
+    const [selections, setSelections] = useState<Record<ProfileOptionField, string[]>>(() => initialProfile ? {
+        householdSize: initialProfile.householdSize ? [formatHouseholdSize(initialProfile.householdSize)] : [],
+        savingsGoal: initialProfile.savingsGoal ? [initialProfile.savingsGoal] : [],
+        allergies: initialProfile.allergies,
+        dietaryPreferences: initialProfile.dietaryPreferences,
+        mealPlanningPreferences: initialProfile.mealPlanningPreferences,
+        preferredStores: initialProfile.preferredStores
+    } : emptySelections);
     const [pageIndex, setPageIndex] = useState(0);
     const [saving, setSaving] = useState(false);
     const { width } = useWindowDimensions();
@@ -87,24 +106,6 @@ export default function ProfileInterview() {
     const unanswered = page.steps.filter((step) => !isWizardStepAnswered(step, valuesForStep(step)));
     const canAdvance = unanswered.length === 0;
 
-    useEffect(() => {
-        loadProfile().then((storedProfile) => {
-            if (storedProfile) {
-                setProfile(storedProfile);
-                setDisplayName(storedProfile.displayName);
-                setSelections({
-                    householdSize: storedProfile.householdSize ? [formatHouseholdSize(storedProfile.householdSize)] : [],
-                    savingsGoal: storedProfile.savingsGoal ? [storedProfile.savingsGoal] : [],
-                    allergies: storedProfile.allergies,
-                    dietaryPreferences: storedProfile.dietaryPreferences,
-                    mealPlanningPreferences: storedProfile.mealPlanningPreferences,
-                    preferredStores: storedProfile.preferredStores
-                });
-            }
-            setHydrated(true);
-        });
-    }, [setHydrated, setProfile]);
-
     const progressWidth = `${((currentPage + 1) / pages.length) * 100}%`;
 
     function toggleOption(field: ProfileOptionField, option: string) {
@@ -135,9 +136,9 @@ export default function ProfileInterview() {
             onboardingComplete: true
         };
         const updatedProfile = profile ? applyProfilePatch(profile, patch) : createProfile(patch);
+        try { await saveProfile(updatedProfile); } catch { setSaving(false); Alert.alert('Could not save profile', 'Please check your connection and try again.'); return; }
         setProfile(updatedProfile);
         setAllergyFilters(updatedProfile.allergies);
-        await saveProfile(updatedProfile);
         setSaving(false);
         router.replace(PROFILE_ROUTE);
     }
@@ -245,7 +246,7 @@ export default function ProfileInterview() {
                         </Pressable>
                         <Pressable
                             accessibilityRole='button'
-                            disabled={saving || !canAdvance}
+                            disabled={saving || !hydrated || !canAdvance}
                             onPress={isLastPage ? saveSetup : goNext}
                             style={[styles.nextButton, (saving || !canAdvance) && styles.disabledNextButton]}
                         >

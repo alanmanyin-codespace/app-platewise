@@ -71,6 +71,7 @@ export function GroceryItemRow({ groceryItemData }: Props) {
                 >
                     {groceryItemData.name}
                 </Text>
+                {groceryItemData.quantity && <Text>{groceryItemData.quantity.amount} {groceryItemData.quantity.unit} needed</Text>}
                 <View style={styles.grocerySubInfo}>
                     <Text style={styles.storeTag}>{groceryItemData.store}</Text>
                     <Text style={styles.recipeOrigin}>

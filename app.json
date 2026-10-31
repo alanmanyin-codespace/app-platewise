@@ -9,7 +9,9 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "infoPlist": { "ITSAppUsesNonExemptEncryption": false }
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,6 +29,14 @@
       "expo-image",
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow PlateWise to select photos for pantry ingredients.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash.png",
@@ -35,8 +45,12 @@
         }
       ],
       "expo-status-bar",
-      "expo-system-ui"
+      "expo-system-ui",
+      "expo-web-browser"
     ],
-    "experiments": { "typedRoutes": true, "baseUrl": "/" }
+    "experiments": {
+      "typedRoutes": true,
+      "baseUrl": "/"
+    }
   }
 }

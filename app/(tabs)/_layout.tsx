@@ -1,7 +1,12 @@
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import { theme } from '@/lib/theme';
-import { Platform, useWindowDimensions } from 'react-native';
+import { Alert, Modal, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAtom } from '@/lib/useAtom';
+import { authReadyAtom, authSessionAtom } from '@/logic/auth/authState';
+import { signInWithGoogle } from '@/logic/auth/googleSignIn';
 
 /**
  * Below this width the bottom bar stays: it is thumb-reachable, which is the
@@ -10,11 +15,37 @@ import { Platform, useWindowDimensions } from 'react-native';
  */
 const DESKTOP_MIN_WIDTH = 1024;
 
+export const unstable_settings = { initialRouteName: 'index' };
+
 export default function Layout() {
     const { width } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
+    const [session] = useAtom(authSessionAtom);
+    const [ready] = useAtom(authReadyAtom);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [signingIn, setSigningIn] = useState(false);
+    const [error, setError] = useState('');
+
+    async function signIn() {
+        setError('');
+        setSigningIn(true);
+        try { await signInWithGoogle(); }
+        catch {
+            if (Platform.OS !== 'web') Alert.alert('Sign-in unavailable', 'Please try again.');
+            setError('Could not start sign-in. Please try again.');
+            setMenuOpen(true);
+        } finally { setSigningIn(false); }
+    }
+    function openAccount() {
+        setError('');
+        if (!ready || signingIn) return;
+        if (session) setMenuOpen(true);
+        else void signIn();
+    }
     const isDesktop = Platform.OS === 'web' && width >= DESKTOP_MIN_WIDTH;
 
     return (
+        <>
         <Tabs
             screenOptions={{
                 headerShown: false,
@@ -55,6 +86,19 @@ export default function Layout() {
             }}
         >
             <Tabs.Screen
+                name='profile'
+                listeners={{ tabPress: (event) => { event.preventDefault(); openAccount(); } }}
+                options={{
+                    // A hidden route is redirected away by Expo Router; hide only its rail button.
+                    ...(isDesktop ? { tabBarButton: () => null } : {}),
+                    headerShown: false,
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialDesignIcons color={color} name='account-circle-outline' size={size} />
+                    ),
+                    title: session ? 'Profile' : 'Sign in'
+                }}
+            />
+            <Tabs.Screen
                 name='index'
                 options={{
                     headerShown: false,
@@ -89,15 +133,42 @@ export default function Layout() {
                 }}
             />
             <Tabs.Screen
-                name='profile'
-                options={{
-                    headerShown: false,
-                    tabBarIcon: ({ color, size }) => (
-                        <MaterialDesignIcons color={color} name='account-cog-outline' size={size} />
-                    ),
-                    title: 'Profile'
-                }}
+                name='pantry'
+                options={{ title: 'Pantry', tabBarIcon: ({ color, size }) => (
+                    <MaterialDesignIcons color={color} name='fridge-outline' size={size} />
+                ) }}
             />
         </Tabs>
+        {isDesktop && <Pressable accessibilityRole='button' accessibilityLabel={session ? 'Account' : 'Sign in with Google'} disabled={!ready || signingIn} onPress={openAccount} style={styles.desktopButton}><MaterialDesignIcons name='account-circle-outline' color='#26352F' size={28} /><Text style={styles.desktopSignInText}>{session ? 'Account' : 'Sign in'}</Text></Pressable>}
+        <Modal transparent visible={menuOpen} animationType='fade' onRequestClose={() => setMenuOpen(false)}>
+            <View style={styles.modal}>
+                <Pressable accessibilityRole='button' accessibilityLabel='Close account menu' style={StyleSheet.absoluteFill} onPress={() => setMenuOpen(false)} />
+                <View accessibilityViewIsModal style={[styles.menu, isDesktop ? styles.desktopMenu : { bottom: Math.max(insets.bottom, 0) + 68, left: Math.max(12, (width - 860) / 2 + 12) }]}>
+                    <Text style={styles.menuTitle}>Account</Text>
+                    {session?.user.email && <Text numberOfLines={1} style={styles.email}>{session.user.email}</Text>}
+                    {session ? (
+                        <Pressable accessibilityRole='button' style={styles.menuItem} onPress={() => { setMenuOpen(false); router.navigate('/(tabs)/profile'); }}>
+                            <MaterialDesignIcons name='account-outline' color='#26352F' size={22} />
+                            <Text style={styles.menuItemText}>View profile</Text>
+                        </Pressable>
+                    ) : null}
+                    {!!error && <Text accessibilityRole='alert' style={styles.error}>{error}</Text>}
+                </View>
+            </View>
+        </Modal>
+        </>
     );
 }
+
+const styles = StyleSheet.create({
+    modal: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.14)' },
+    menu: { position: 'absolute', width: 250, maxWidth: '90%', padding: 14, borderRadius: 14, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e7e7e7', elevation: 8, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+    desktopMenu: { left: 24, bottom: 88 },
+    desktopButton: { position: 'absolute', left: 0, bottom: 0, width: 232, minHeight: 64, paddingHorizontal: 20, flexDirection: 'row', gap: 12, backgroundColor: '#fff', borderTopWidth: 1, borderRightWidth: 1, borderColor: '#ebebeb', alignItems: 'center' },
+    desktopSignInText: { color: '#26352F', fontSize: 14, fontWeight: '700' },
+    menuTitle: { color: '#222', fontSize: 14, fontWeight: '800', paddingHorizontal: 8, paddingBottom: 8 },
+    email: { color: '#717171', fontSize: 12, paddingHorizontal: 8, paddingBottom: 8 },
+    menuItem: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 8, borderRadius: 8 },
+    menuItemText: { color: '#26352F', fontSize: 14, fontWeight: '600' },
+    error: { color: '#b02c42', fontSize: 12, paddingHorizontal: 8, paddingTop: 6 }
+});
