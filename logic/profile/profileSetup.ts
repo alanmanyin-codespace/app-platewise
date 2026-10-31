@@ -1,3 +1,5 @@
+import type { Profile } from './types';
+
 export type ProfileOptionField =
     | 'householdSize'
     | 'savingsGoal'
@@ -25,4 +27,9 @@ export function applyProfileOption(
     return selected.includes(option)
         ? selected.filter((value) => value !== option)
         : [...selected.filter((value) => !exclusiveOptions.has(value)), option];
+}
+
+/** New interviews start empty; editing is the only mode that pre-fills answers. */
+export function getInterviewProfile(profile: Profile | null, mode?: string): Profile | null {
+    return mode === 'edit' ? profile : null;
 }

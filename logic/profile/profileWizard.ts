@@ -55,6 +55,10 @@ export const PROFILE_WIZARD_STEPS: ProfileWizardStep[] = [
     { field: 'preferredStores', group: 'shopping', label: 'Preferred stores', description: 'Pick the stores you want us to prioritize.', options: ['Metro', 'No Frills', 'FreshCo', 'Walmart', 'Food Basics'], multiSelect: true }
 ];
 
+export function getInterviewSteps(creating: boolean): ProfileWizardStep[] {
+    return creating ? PROFILE_WIZARD_STEPS.filter((step) => step.field !== 'displayName') : PROFILE_WIZARD_STEPS;
+}
+
 export function getNextWizardStep(index: number): number {
     return Math.min(index + 1, PROFILE_WIZARD_STEPS.length - 1);
 }

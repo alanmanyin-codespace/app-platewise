@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Create a user profile that helps All About Savings personalize grocery recommendations and meal planning.
+Create a user profile that helps Plate Wise personalize grocery recommendations and meal planning.
 
 The first version should gather the user’s preferences through a centered, option-based single-question wizard in the general app UI. The profile should then be created and stored when the user saves the setup, or from available login information when the user signs in.
 

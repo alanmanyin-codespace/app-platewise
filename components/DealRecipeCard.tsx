@@ -38,7 +38,7 @@ export function DealRecipeCard({ recipeData }: Props) {
                     <Text style={styles.savingsPillText}>
                         {join(
                             [
-                                'SAVE $',
+                                'SAMPLE SAVINGS $',
                                 formatNumber(recipeData.savings, {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
@@ -56,13 +56,13 @@ export function DealRecipeCard({ recipeData }: Props) {
             <View style={styles.cardBody}>
                 <View style={styles.storeRow}>
                     <StoreBadge storeName={recipeData.store} />
-                    <Text style={styles.flyerDate}>{recipeData.flyerDate}</Text>
+                    <Text style={styles.flyerDate}>Sample price</Text>
                 </View>
                 <Text style={styles.cardTitle}>{recipeData.title}</Text>
                 <View style={styles.flyerItemMatched}>
                     <MaterialDesignIcons color={theme.colors.primary} name='check-decagram' size={14} />
                     <Text style={styles.matchedText}>
-                        {join(['Flyer item: ', recipeData.flyerItem], {
+                        {join(['Example item: ', recipeData.flyerItem], {
                             type: 'separator',
                             separator: ''
                         })}

@@ -45,7 +45,7 @@ export default function Groceries() {
                                 Share.share({
                                     title: 'My Flyer Grocery List',
                                     message:
-                                        'Smart Shopping List matched to Canadian grocery flyers from All About Savings!'
+                                        'Smart Shopping List matched to Canadian grocery flyers from Plate Wise!'
                                 });
                             }}
                         >

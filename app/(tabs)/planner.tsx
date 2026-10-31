@@ -32,22 +32,22 @@ export default function Planner() {
             <SafeAreaView edges={['top']} style={styles.plannerSafeArea}>
                 <View style={styles.plannerHeader}>
                     <Text accessibilityRole='header' accessibilityLevel={1} style={styles.plannerTitle}>
-                        This Week&apos;s Menu
+                        A Sample Week
                     </Text>
                     <Text style={styles.plannerSubtitle}>
-                        Optimized for maximum flyer savings across your local stores
+                        A seven-day example to help inspire your meals
                     </Text>
                     <View style={styles.savingsOverviewCard}>
                         <View>
-                            <Text style={styles.planCostLabel}>Estimated Week Cost</Text>
+                            <Text style={styles.planCostLabel}>Sample Week Cost</Text>
                             <Text style={styles.planCostNum}>${formatNumber(planCost, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-                            <Text style={styles.familyCount}>7 dinners • 4 servings each</Text>
+                            <Text style={styles.familyCount}>7 sample dinners</Text>
                         </View>
                         <View style={styles.divider} />
                         <View style={styles.planSavedCol}>
-                            <Text style={styles.planSavedLabel}>Total Saved</Text>
+                            <Text style={styles.planSavedLabel}>Sample Savings</Text>
                             <Text style={styles.planSavedNum}>${formatNumber(planSavings, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-                            <Text style={styles.savingsPercent}>42% less than normal</Text>
+                            <Text style={styles.savingsPercent}>Example figures only</Text>
                         </View>
                     </View>
                 </View>

@@ -1,3 +1,5 @@
+import { createProfile } from './profileState';
+import { getInterviewProfile } from './profileSetup';
 import { describe, expect, it } from 'vitest';
 import { applyProfileOption } from './profileSetup';
 
@@ -20,5 +22,16 @@ describe('profile setup options', () => {
     it('toggles regular multi-select choices', () => {
         expect(applyProfileOption('preferredStores', ['Metro'], 'No Frills')).toEqual(['Metro', 'No Frills']);
         expect(applyProfileOption('preferredStores', ['Metro', 'No Frills'], 'Metro')).toEqual(['No Frills']);
+    });
+});
+
+describe('starting profile setup', () => {
+    it('starts a new interview without saved answers', () => {
+        const old = createProfile({ displayName: 'Previous', allergies: ['Peanuts'] });
+        expect(getInterviewProfile(old, 'create')).toBeNull();
+    });
+    it('loads saved answers when editing a profile', () => {
+        const old = createProfile({ displayName: 'Existing' });
+        expect(getInterviewProfile(old, 'edit')).toBe(old);
     });
 });

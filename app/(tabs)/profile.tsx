@@ -84,7 +84,7 @@ function ProfileContent() {
                         accessibilityRole='button'
                         accessibilityLabel={profile ? 'Continue profile interview' : 'Start profile interview'}
                         disabled={!hydrated}
-                        onPress={() => router.push('/profile-interview')}
+                        onPress={() => router.push({ pathname: '/profile-interview', params: { mode: 'edit' } })}
                         style={styles.interviewButton}
                     >
                         <MaterialDesignIcons color='#FFFFFF' name='message-text-outline' size={18} />

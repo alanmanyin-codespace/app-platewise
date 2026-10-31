@@ -7,7 +7,7 @@ import { pantryAtom, pantryHydratedAtom } from '@/logic/pantry/pantryState';
 import { loadPantry } from '@/logic/pantry/pantryStorage';
 import { supabase } from '@/logic/auth/supabase';
 import { authErrorAtom, authReadyAtom, authSessionAtom } from '@/logic/auth/authState';
-import { takeProfileReturn } from '@/logic/auth/signInReturn';
+import { takeSignInReturn } from '@/logic/auth/signInReturn';
 import { loadProfile } from '@/logic/profile/profileStorage';
 import { profileAtom, profileHydratedAtom } from '@/logic/profile/profileState';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
@@ -39,8 +39,10 @@ export default function RootLayout() {
                 store.set(profileAtom, profile);
                 store.set(allergyFiltersAtom, profile?.allergies ?? []);
                 store.set(profileHydratedAtom, true);
-                if (Platform.OS === 'web' && takeProfileReturn(window.sessionStorage, !!session)) {
-                    router.replace('/(tabs)/profile');
+                if (Platform.OS === 'web') {
+                    const destination = takeSignInReturn(window.sessionStorage, !!session);
+                    if (destination === 'interview') router.replace({ pathname: '/profile-interview', params: { mode: 'create' } });
+                    else if (destination === 'profile') router.replace('/(tabs)/profile');
                 }
             } catch {
                 if (active && generation === current) store.set(authErrorAtom, 'Unable to load your profile. Check your connection and try again.');

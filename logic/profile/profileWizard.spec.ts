@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     clampPageIndex,
+    getInterviewSteps,
     getNextWizardStep,
     getPreviousWizardStep,
     getStepsInGroup,
@@ -11,8 +12,7 @@ import {
 
 describe('profile wizard steps', () => {
     it('presents one profile topic at a time in a stable order', () => {
-        expect(PROFILE_WIZARD_STEPS.map((step) => step.field)).toEqual([
-            'displayName',
+        expect(getInterviewSteps(true).map((step) => step.field)).toEqual([
             'householdSize',
             'savingsGoal',
             'allergies',
@@ -20,6 +20,10 @@ describe('profile wizard steps', () => {
             'mealPlanningPreferences',
             'preferredStores'
         ]);
+    });
+
+    it('retains the name field when editing', () => {
+        expect(getInterviewSteps(false).some((step) => step.field === 'displayName')).toBe(true);
     });
 
     it('moves forward and backward without leaving the wizard bounds', () => {
@@ -53,14 +57,8 @@ describe('profile wizard groups', () => {
 });
 
 describe('wizard step completion', () => {
-    it('treats the name step as answered even when left blank', () => {
-        const nameStep = PROFILE_WIZARD_STEPS[0];
-        expect(nameStep.field).toBe('displayName');
-        expect(isWizardStepAnswered(nameStep, [])).toBe(true);
-    });
-
-    it('requires a selection on every other step', () => {
-        const householdStep = PROFILE_WIZARD_STEPS[1];
+    it('requires a selection on the household step', () => {
+        const householdStep = getInterviewSteps(true)[0];
         expect(isWizardStepAnswered(householdStep, [])).toBe(false);
         expect(isWizardStepAnswered(householdStep, ['2'])).toBe(true);
     });

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "all-about-savings-v-3",
-    "slug": "expo-empty",
+    "name": "Plate Wise",
+    "slug": "plate-wise",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -31,7 +31,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow PlateWise to select photos for pantry ingredients.",
+          "photosPermission": "Allow Plate Wise to select photos for pantry ingredients.",
           "cameraPermission": false,
           "microphonePermission": false
         }
