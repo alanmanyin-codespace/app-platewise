@@ -13,6 +13,7 @@ import { profileAtom, profileHydratedAtom } from '@/logic/profile/profileState';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
 import { Platform, StyleSheet, View } from 'react-native';
 import { installBrowserSurfaces } from '@/lib/web/browserSurfaces';
+import { WebAnalytics } from '@/components/WebAnalytics';
 
 installBrowserSurfaces();
 
@@ -75,6 +76,7 @@ export default function RootLayout() {
                 <Stack.Screen name='recipe-detail' />
                 <Stack.Screen name='profile-interview' />
             </Stack>
+            <WebAnalytics />
         </View>
     );
 }
