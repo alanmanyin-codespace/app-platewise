@@ -7,10 +7,11 @@ import { authErrorAtom, authReadyAtom, authSessionAtom } from '@/logic/auth/auth
 import { profileHydratedAtom } from '@/logic/profile/profileState';
 import { signInWithEmail, signUpWithEmail } from '@/logic/auth/emailSignIn';
 import { signInWithGoogle } from '@/logic/auth/googleSignIn';
+import type { SignInDestination } from '@/logic/auth/signInReturn';
 
-type Props = { onClose: () => void; onAuthenticated: () => void };
+type Props = { onClose: () => void; onAuthenticated: () => void; destination?: SignInDestination };
 
-export function ProfileSignInDialog({ onClose, onAuthenticated }: Props) {
+export function ProfileSignInDialog({ onClose, onAuthenticated, destination = 'interview' }: Props) {
     const [mode, setMode] = useState<'signup' | 'signin'>('signup');
     const [confirmationSent, setConfirmationSent] = useState(false);
     const [email, setEmail] = useState('');
@@ -49,7 +50,7 @@ export function ProfileSignInDialog({ onClose, onAuthenticated }: Props) {
         if (busy) return;
         setLoading(true);
         setError('');
-        try { await signInWithGoogle('interview'); }
+        try { await signInWithGoogle(destination); }
         catch { setError('Could not start Google sign-in. Please try again.'); }
         finally { setLoading(false); }
     }

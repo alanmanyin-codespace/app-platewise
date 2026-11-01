@@ -2,12 +2,12 @@ import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-
 import { router, Tabs } from 'expo-router';
 import { theme } from '@/lib/theme';
 import { HOME_EDGE_PADDING, HOME_MAX_WIDTH } from '@/lib/layout';
-import { Alert, Modal, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAtom } from '@/lib/useAtom';
 import { authReadyAtom, authSessionAtom } from '@/logic/auth/authState';
-import { signInWithGoogle } from '@/logic/auth/googleSignIn';
+import { ProfileSignInDialog } from '@/components/ProfileSignInDialog';
 
 /** Phones retain a thumb-reachable bottom bar; wide web layouts use a header. */
 const DESKTOP_MIN_WIDTH = 1024;
@@ -20,24 +20,12 @@ export default function Layout() {
     const [session] = useAtom(authSessionAtom);
     const [ready] = useAtom(authReadyAtom);
     const [menuOpen, setMenuOpen] = useState(false);
-    const [signingIn, setSigningIn] = useState(false);
-    const [error, setError] = useState('');
+    const [dialogOpen, setDialogOpen] = useState(false);
 
-    async function signIn() {
-        setError('');
-        setSigningIn(true);
-        try { await signInWithGoogle(); }
-        catch {
-            if (Platform.OS !== 'web') Alert.alert('Sign-in unavailable', 'Please try again.');
-            setError('Could not start sign-in. Please try again.');
-            setMenuOpen(true);
-        } finally { setSigningIn(false); }
-    }
     function openAccount() {
-        setError('');
-        if (!ready || signingIn) return;
+        if (!ready) return;
         if (session) setMenuOpen(true);
-        else void signIn();
+        else setDialogOpen(true);
     }
     const isDesktop = Platform.OS === 'web' && width >= DESKTOP_MIN_WIDTH;
     const headerEdge = Math.max(HOME_EDGE_PADDING, (width - HOME_MAX_WIDTH) / 2 + HOME_EDGE_PADDING);
@@ -88,7 +76,7 @@ export default function Layout() {
                     tabBarIcon: ({ color, size }) => (
                         <MaterialDesignIcons color={color} name='account-circle-outline' size={size} />
                     ),
-                    title: session ? 'Profile' : 'Sign in'
+                    title: session ? 'Profile' : 'Sign up / login'
                 }}
             />
             )}
@@ -143,7 +131,7 @@ export default function Layout() {
                     tabBarIcon: ({ color, size }) => (
                         <MaterialDesignIcons color={color} name='account-circle-outline' size={size} />
                     ),
-                    title: session ? 'Profile' : 'Sign in'
+                    title: session ? 'Profile' : 'Sign up / login'
                 }}
             />
             )}
@@ -161,10 +149,10 @@ export default function Layout() {
                             <Text style={styles.menuItemText}>View profile</Text>
                         </Pressable>
                     ) : null}
-                    {!!error && <Text accessibilityRole='alert' style={styles.error}>{error}</Text>}
                 </View>
             </View>
         </Modal>
+        {dialogOpen && <ProfileSignInDialog destination='profile' onClose={() => setDialogOpen(false)} onAuthenticated={() => setDialogOpen(false)} />}
         </>
     );
 }
@@ -181,6 +169,5 @@ const styles = StyleSheet.create({
     menuTitle: { color: '#222', fontSize: 14, fontWeight: '800', paddingHorizontal: 8, paddingBottom: 8 },
     email: { color: '#717171', fontSize: 12, paddingHorizontal: 8, paddingBottom: 8 },
     menuItem: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 8, borderRadius: 8 },
-    menuItemText: { color: '#26352F', fontSize: 14, fontWeight: '600' },
-    error: { color: '#b02c42', fontSize: 12, paddingHorizontal: 8, paddingTop: 6 }
+    menuItemText: { color: '#26352F', fontSize: 14, fontWeight: '600' }
 });
