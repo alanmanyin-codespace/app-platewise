@@ -4,6 +4,10 @@ PlateWise is a grocery savings and meal-planning app for web, iOS, and Android. 
 
 > **Current data:** Recipes, store references, and flyer prices shown in the app are examples. They are not live grocery offers or verified current prices. The app does not currently display data from the separate flyer collector.
 
+## Demo
+
+[Open the PlateWise demo](https://app-platewise.vercel.app/)
+
 ## What is in the app
 
 - Browse sample recipes and filter them by store or allergens.
