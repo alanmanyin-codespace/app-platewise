@@ -1,41 +1,18 @@
-import { join } from '@/lib/array/join';
-import { groceryItemsListAtom } from '@/logic/app-state/groceryItemsListAtom';
 import { getDefaultStore } from 'jotai';
 import { Alert } from 'react-native';
+import { pantryHydratedAtom } from '@/logic/pantry/pantryState';
+import { shoppingRecipesAtom, syncShoppingList } from '@/logic/pantry/syncShoppingList';
 import type { Recipe } from '@/logic/types';
 
-const store = getDefaultStore();
-
-type Params = {
-    recipe?: Recipe;
-};
-
-export function addRecipeIngredientsToGroceries({ recipe }: Params) {
-    if (!recipe) {
+export function addRecipeIngredientsToGroceries({ recipe }: { recipe?: Recipe }) {
+    if (!recipe) return;
+    const store = getDefaultStore();
+    if (!store.get(pantryHydratedAtom)) {
+        Alert.alert('Pantry is loading', 'Please try again in a moment.');
         return;
     }
-
-    const existingItems = store.get(groceryItemsListAtom);
-    store.set(
-        groceryItemsListAtom,
-        [
-            ...existingItems,
-            ...recipe.ingredients.map((item, index) => ({
-                id: `${recipe.id}-${existingItems.length + index}`,
-                name: item.name,
-                flyerPrice: item.flyerPrice,
-                regPrice: item.regPrice,
-                store: item.store,
-                completed: false,
-                recipe: recipe.title
-            }))
-        ]
-    );
-    Alert.alert(
-        'Added to Shopping List',
-        join([recipe.title, 'ingredients added to your grocery list with current flyer prices.'], {
-            type: 'separator',
-            separator: ' '
-        })
-    );
+    const recipes = store.get(shoppingRecipesAtom);
+    store.set(shoppingRecipesAtom, [...recipes.filter((item) => item.id !== recipe.id), recipe]);
+    syncShoppingList();
+    Alert.alert('Shopping list updated', 'Missing ingredients have been added to your shopping list.');
 }

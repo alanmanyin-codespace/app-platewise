@@ -1,29 +1,45 @@
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import { theme } from '@/lib/theme';
-import { Platform, useWindowDimensions } from 'react-native';
+import { HOME_EDGE_PADDING, HOME_MAX_WIDTH } from '@/lib/layout';
+import { Modal, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAtom } from '@/lib/useAtom';
+import { authReadyAtom, authSessionAtom } from '@/logic/auth/authState';
+import { ProfileSignInDialog } from '@/components/ProfileSignInDialog';
 
-/**
- * Below this width the bottom bar stays: it is thumb-reachable, which is the
- * whole point of the pattern. Above it a bottom bar is just a phone affordance
- * stranded on a desk, so navigation moves to a persistent left rail.
- */
+/** Phones retain a thumb-reachable bottom bar; wide web layouts use a header. */
 const DESKTOP_MIN_WIDTH = 1024;
+
+export const unstable_settings = { initialRouteName: 'index' };
 
 export default function Layout() {
     const { width } = useWindowDimensions();
+    const insets = useSafeAreaInsets();
+    const [session] = useAtom(authSessionAtom);
+    const [ready] = useAtom(authReadyAtom);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
+
+    function openAccount() {
+        if (!ready) return;
+        if (session) setMenuOpen(true);
+        else setDialogOpen(true);
+    }
     const isDesktop = Platform.OS === 'web' && width >= DESKTOP_MIN_WIDTH;
+    const headerEdge = Math.max(HOME_EDGE_PADDING, (width - HOME_MAX_WIDTH) / 2 + HOME_EDGE_PADDING);
 
     return (
+        <>
+        {isDesktop && <View style={styles.announcement}><Text style={styles.announcementText}>A little inspiration for every meal</Text></View>}
         <Tabs
             screenOptions={{
                 headerShown: false,
                 tabBarActiveTintColor: theme.colors.primary,
                 tabBarInactiveTintColor: '#717171',
-                tabBarPosition: isDesktop ? 'left' : 'bottom',
-                // The rail reads as a list of destinations, so the label sits
-                // beside its icon; the bottom bar keeps labels stacked under.
-                tabBarVariant: isDesktop ? 'material' : 'uikit',
+                tabBarPosition: isDesktop ? 'top' : 'bottom',
+                tabBarVariant: 'uikit',
                 tabBarLabelPosition: isDesktop ? 'beside-icon' : 'below-icon',
                 tabBarLabelStyle: isDesktop
                     ? { fontSize: 14, fontWeight: '600' }
@@ -31,15 +47,12 @@ export default function Layout() {
                 tabBarStyle: isDesktop
                     ? {
                           backgroundColor: theme.colors.background,
-                          borderRightColor: '#EBEBEB',
-                          borderRightWidth: 1,
-                          // The rail defaults to Material's 360dp navigation
-                          // *drawer* width, which is wider than a third of the
-                          // 860px content column. minWidth has to come down
-                          // with width or it keeps winning in CSS.
-                          minWidth: 232,
-                          paddingTop: 12,
-                          width: 232
+                          borderBottomColor: '#EBEBEB',
+                          borderBottomWidth: 1,
+                          height: 72,
+                          paddingLeft: headerEdge + 155,
+                          paddingRight: headerEdge,
+                          width: '100%'
                       }
                     : Platform.OS === 'web'
                       ? {
@@ -54,15 +67,30 @@ export default function Layout() {
                       : { backgroundColor: theme.colors.background, height: 60 }
             }}
         >
+            {!isDesktop && (
             <Tabs.Screen
-                name='index'
+                name='profile'
+                listeners={{ tabPress: (event) => { event.preventDefault(); openAccount(); } }}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialDesignIcons color={color} name='tag-outline' size={size} />
+                        <MaterialDesignIcons color={color} name='account-circle-outline' size={size} />
                     ),
-                    title: 'Deals'
+                    title: session ? 'Profile' : 'Sign up / login'
                 }}
+            />
+            )}
+            <Tabs.Screen
+                name='index'
+                options={{ title: 'Home', tabBarIcon: ({ color, size }) => (
+                    <MaterialDesignIcons color={color} name='home-outline' size={size} />
+                ) }}
+            />
+            <Tabs.Screen
+                name='deals'
+                options={{ title: 'Deals', tabBarIcon: ({ color, size }) => (
+                    <MaterialDesignIcons color={color} name='tag-outline' size={size} />
+                ) }}
             />
             <Tabs.Screen
                 name='planner'
@@ -89,15 +117,57 @@ export default function Layout() {
                 }}
             />
             <Tabs.Screen
+                name='pantry'
+                options={{ title: 'Pantry', tabBarIcon: ({ color, size }) => (
+                    <MaterialDesignIcons color={color} name='fridge-outline' size={size} />
+                ) }}
+            />
+            {isDesktop && (
+            <Tabs.Screen
                 name='profile'
+                listeners={{ tabPress: (event) => { event.preventDefault(); openAccount(); } }}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialDesignIcons color={color} name='account-cog-outline' size={size} />
+                        <MaterialDesignIcons color={color} name='account-circle-outline' size={size} />
                     ),
-                    title: 'Profile'
+                    title: session ? 'Profile' : 'Sign up / login'
                 }}
             />
+            )}
         </Tabs>
+        {isDesktop && <Pressable accessibilityRole='button' accessibilityLabel='PlateWise home' onPress={() => router.navigate('/')} style={[styles.brand, { left: headerEdge }]}><Text style={styles.brandMark}>●</Text><Text style={styles.brandName}>PlateWise</Text></Pressable>}
+        <Modal transparent visible={menuOpen} animationType='fade' onRequestClose={() => setMenuOpen(false)}>
+            <View style={styles.modal}>
+                <Pressable accessibilityRole='button' accessibilityLabel='Close account menu' style={StyleSheet.absoluteFill} onPress={() => setMenuOpen(false)} />
+                <View accessibilityViewIsModal style={[styles.menu, isDesktop ? [styles.desktopMenu, { right: headerEdge }] : { bottom: Math.max(insets.bottom, 0) + 68, left: Math.max(12, (width - 860) / 2 + 12) }]}>
+                    <Text style={styles.menuTitle}>Account</Text>
+                    {session?.user.email && <Text numberOfLines={1} style={styles.email}>{session.user.email}</Text>}
+                    {session ? (
+                        <Pressable accessibilityRole='button' style={styles.menuItem} onPress={() => { setMenuOpen(false); router.navigate('/(tabs)/profile'); }}>
+                            <MaterialDesignIcons name='account-outline' color='#26352F' size={22} />
+                            <Text style={styles.menuItemText}>View profile</Text>
+                        </Pressable>
+                    ) : null}
+                </View>
+            </View>
+        </Modal>
+        {dialogOpen && <ProfileSignInDialog destination='profile' onClose={() => setDialogOpen(false)} onAuthenticated={() => setDialogOpen(false)} />}
+        </>
     );
 }
+
+const styles = StyleSheet.create({
+    modal: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.14)' },
+    menu: { position: 'absolute', width: 250, maxWidth: '90%', padding: 14, borderRadius: 14, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e7e7e7', elevation: 8, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+    announcement: { height: 32, backgroundColor: '#2d6a5b', alignItems: 'center', justifyContent: 'center' },
+    announcementText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+    desktopMenu: { top: 110 },
+    brand: { position: 'absolute', top: 32, height: 72, flexDirection: 'row', alignItems: 'center', gap: 9 },
+    brandMark: { color: '#2d6a5b', fontSize: 19 },
+    brandName: { color: '#213c30', fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+    menuTitle: { color: '#222', fontSize: 14, fontWeight: '800', paddingHorizontal: 8, paddingBottom: 8 },
+    email: { color: '#717171', fontSize: 12, paddingHorizontal: 8, paddingBottom: 8 },
+    menuItem: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 8, borderRadius: 8 },
+    menuItemText: { color: '#26352F', fontSize: 14, fontWeight: '600' }
+});

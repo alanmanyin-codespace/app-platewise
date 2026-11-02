@@ -11,6 +11,7 @@ type Params = {
 };
 
 export function toggleAllergy({ allergen }: Params) {
+    if (!allergen) return;
     if (find(store.get(allergyFiltersAtom), (item) => compare(item, allergen, 'equals'))) {
         store.set(
             allergyFiltersAtom,

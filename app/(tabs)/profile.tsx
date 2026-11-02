@@ -1,16 +1,20 @@
+import { ProfileAccessGate } from '@/components/ProfileAccessGate';
 import { ProfilePreferenceEditor } from '@/components/ProfilePreferenceEditor';
 import { ProfileSummaryCard } from '@/components/ProfileSummaryCard';
 import { theme } from '@/lib/theme';
 import { useAtom } from '@/lib/useAtom';
 import { toggleAllergy } from '@/logic/actions/toggleAllergy';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
-import { loadProfile, saveProfile } from '@/logic/profile/profileStorage';
+import { saveProfile } from '@/logic/profile/profileStorage';
+import { authErrorAtom, authReadyAtom, authSessionAtom } from '@/logic/auth/authState';
+import { signInWithGoogle } from '@/logic/auth/googleSignIn';
+import { supabase } from '@/logic/auth/supabase';
 import { profileAtom, profileHydratedAtom, toggleProfileListValue } from '@/logic/profile/profileState';
 import type { ProfileListField } from '@/logic/profile/types';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { Tabs, router } from 'expo-router';
-import { useEffect } from 'react';
-import { Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const canadianStores = [
@@ -22,46 +26,65 @@ const canadianStores = [
 ];
 
 export default function Profile() {
+    return <ProfileAccessGate><ProfileContent /></ProfileAccessGate>;
+}
+
+function ProfileContent() {
     const [profile, setProfile] = useAtom(profileAtom);
     const [, setAllergyFilters] = useAtom(allergyFiltersAtom);
-    const [, setHydrated] = useAtom(profileHydratedAtom);
+    const [hydrated] = useAtom(profileHydratedAtom);
+    const [ready] = useAtom(authReadyAtom);
+    const [session] = useAtom(authSessionAtom);
+    const [authError] = useAtom(authErrorAtom);
+    const [busy, setBusy] = useState(false);
 
-    useEffect(() => {
-        loadProfile().then((storedProfile) => {
-            if (storedProfile) {
-                setProfile(storedProfile);
-                setAllergyFilters(storedProfile.allergies);
-            }
-            setHydrated(true);
-        });
-    }, [setAllergyFilters, setHydrated, setProfile]);
+    async function handleAuth() {
+        setBusy(true);
+        try {
+            if (session) {
+                const { error } = await supabase!.auth.signOut();
+                if (error) throw error;
+            } else await signInWithGoogle();
+        } catch {
+            Alert.alert('Sign-in unavailable', 'Check your connection and try again.');
+        } finally { setBusy(false); }
+    }
 
     async function handleToggle(field: ProfileListField, value: string) {
         if (!profile) return;
         const updated = toggleProfileListValue(profile, field, value);
+        try { await saveProfile(updated); } catch { Alert.alert('Could not save profile', 'Please try again.'); return; }
         setProfile(updated);
         if (field === 'allergies') {
             toggleAllergy({ allergen: value });
             setAllergyFilters(updated.allergies);
         }
-        await saveProfile(updated);
     }
 
     return (
         <>
             <StatusBar barStyle='dark-content' />
-            <Tabs.Screen options={{ headerShown: false, tabBarIcon: ({ color, size }) => <MaterialDesignIcons color={color} name='account-cog-outline' size={size} />, title: 'Profile' }} />
+            <Tabs.Screen options={{ headerShown: false, tabBarIcon: ({ color, size }) => <MaterialDesignIcons color={color} name='account-circle-outline' size={size} />, title: 'Profile' }} />
             <SafeAreaView edges={['top']} style={styles.safeArea}>
                 <ScrollView contentContainerStyle={styles.content}>
                     <Text accessibilityRole='header' accessibilityLevel={1} style={styles.title}>
                         Profile
                     </Text>
                     <Text style={styles.subtitle}>Control what recipes are generated from flyer sale deals</Text>
-                    <ProfileSummaryCard profile={profile} />
+                    <View style={styles.accountCard}>
+                        <Text style={styles.sectionTitle}>{session ? 'Signed in' : 'Your account'}</Text>
+                        <Text style={styles.sectionDescription}>{session?.user.email ?? 'Sign in to save your profile across devices.'}</Text>
+                        <Pressable accessibilityRole='button' disabled={!ready || busy} onPress={handleAuth} style={styles.accountButton}>
+                            <Text style={styles.accountButtonText}>{busy || !ready ? 'Please wait…' : session ? 'Sign out' : 'Continue with Google'}</Text>
+                        </Pressable>
+                        {authError && <Text style={styles.error}>{authError}</Text>}
+                    </View>
+                    {hydrated && <ProfileSummaryCard profile={profile} />}
                     <Pressable
                         accessibilityRole='button'
                         accessibilityLabel={profile ? 'Continue profile interview' : 'Start profile interview'}
-                        onPress={() => router.push('/profile-interview')}
+                        disabled={!hydrated}
+                        onPress={() => router.push({ pathname: '/profile-interview', params: { mode: 'edit' } })}
                         style={styles.interviewButton}
                     >
                         <MaterialDesignIcons color='#FFFFFF' name='message-text-outline' size={18} />
@@ -87,6 +110,9 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
+    accountCard: { backgroundColor: '#f7f7f7', borderRadius: 12, padding: 16, marginBottom: 18 },
+    accountButton: { borderColor: '#222', borderWidth: 1, borderRadius: 8, padding: 12, alignItems: 'center' },
+    accountButtonText: { color: '#222', fontWeight: '700' }, error: { color: '#b02c42', marginTop: 8 },
     content: { alignSelf: 'center', maxWidth: 760, paddingBottom: 32, paddingHorizontal: 20, paddingTop: 12, width: '100%' },
     empty: { color: '#717171', fontSize: 13, marginBottom: 24 },
     interviewButton: { alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 10, flexDirection: 'row', justifyContent: 'center', marginBottom: 24, padding: 13 },

@@ -45,7 +45,7 @@ export default function Groceries() {
                                 Share.share({
                                     title: 'My Flyer Grocery List',
                                     message:
-                                        'Smart Shopping List matched to Canadian grocery flyers from All About Savings!'
+                                        'Smart Shopping List matched to Canadian grocery flyers from Plate Wise!'
                                 });
                             }}
                         >
@@ -57,7 +57,7 @@ export default function Groceries() {
                         </TouchableOpacity>
                     </View>
                     <Text style={styles.groceriesSub}>
-                        Grouped by weekly flyer sales for effortless shopping
+                        Ingredients missing from your pantry
                     </Text>
                     <View style={styles.savingsTallyCard}>
                         <View>
@@ -67,7 +67,7 @@ export default function Groceries() {
                                     separator: ''
                                 })}
                             </Text>
-                            <Text style={styles.flyerMatched}>All items flyer price-verified</Text>
+                            <Text style={styles.flyerMatched}>Prices are examples and may not match quantities</Text>
                         </View>
                         <View style={styles.totalBadge}>
                             <Text style={styles.totalBadgeText}>Total ${formatNumber(total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
@@ -75,6 +75,7 @@ export default function Groceries() {
                     </View>
                 </View>
                 <ScrollView contentContainerStyle={styles.groceryListScrollContentContainer}>
+                    {groceryItemsList.length === 0 && <Text>Your shopping list is empty. Add a recipe from Deals to get started.</Text>}
                     {map(groceryItemsList, (item) => (
                         <GroceryItemRow key={item.id} groceryItemData={item} />
                     ))}

@@ -1,137 +1,128 @@
-import { DealRecipeCard } from "@/components/DealRecipeCard";
-import { filter } from "@/lib/array/filter";
-import { map } from "@/lib/array/map";
-import { compare } from "@/lib/boolean/compare";
-import { conditionalSafe } from "@/lib/boolean/conditional";
-import { theme } from "@/lib/theme";
-import { useAtom } from "@/lib/useAtom";
-import { activeStoreFilterAtom } from "@/logic/app-state/activeStoreFilterAtom";
-import { allergyFiltersAtom } from "@/logic/app-state/allergyFiltersAtom";
-import { MaterialDesignIcons } from "@react-native-vector-icons/material-design-icons";
-import { Tabs } from "expo-router";
-import { useStore } from "jotai";
-import { useState } from "react";
-import { Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useMemo, useRef, useState, type ComponentRef } from 'react';
+import { Image } from 'expo-image';
+import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
+import { SlideButton } from '@/components/SlideButton';
+import { router, useIsFocused } from 'expo-router';
+import { Pressable, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAtom } from '@/lib/useAtom';
+import { HOME_EDGE_PADDING, HOME_MAX_WIDTH } from '@/lib/layout';
+import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
+import { authReadyAtom, authSessionAtom } from '@/logic/auth/authState';
+import { clearPendingInterview } from '@/logic/profile/pendingInterview';
+import { openRecipeDetail } from '@/logic/actions/openRecipeDetail';
+import { filterRecipes } from '@/logic/recipes/discover';
+import { sampleRecipes } from '@/logic/recipes/sampleRecipes';
+import type { Recipe } from '@/logic/types';
 
-export default function Index() {
-    const [storeFilterOptions] = useState<any[]>(["All Stores", "Metro", "No Frills", "FreshCo", "Walmart"]);
-    const store = useStore();
-    const [activeStoreFilter] = useAtom(activeStoreFilterAtom);
-    const [allergyFilters] = useAtom(allergyFiltersAtom);
-    const [dealsList] = useState<any[]>([{ "id": "r1", "title": "Maple-Glazed Salmon & Asparagus", "store": "Metro", "flyerDate": "Till Wed, Oct 25", "flyerItem": "Fresh Atlantic Salmon Fillets", "originalPrice": 16.99, "flyerPrice": 9.99, "savings": 7, "servings": 4, "prepTime": "25 min", "calories": "420 kcal", "imageUrl": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=80", "allergens": ["Fish"], "ingredients": [{ "name": "Atlantic Salmon Fillets (600g)", "store": "Metro", "isFlyerDeal": true, "flyerPrice": 9.99, "regPrice": 16.99 }, { "name": "Fresh Green Asparagus Bunch", "store": "Metro", "isFlyerDeal": true, "flyerPrice": 2.49, "regPrice": 4.99 }, { "name": "Pure Canadian Maple Syrup (250ml)", "store": "Metro", "isFlyerDeal": false, "flyerPrice": 6.49, "regPrice": 6.49 }, { "name": "Dijon Mustard & Fresh Garlic", "store": "Metro", "isFlyerDeal": false, "flyerPrice": 1.89, "regPrice": 1.89 }], "steps": ["Whisk maple syrup, Dijon mustard, minced garlic, and salt in a bowl.", "Place salmon fillets and asparagus onto a baking sheet lined with parchment.", "Brush glaze generously across salmon and drizzle olive oil over asparagus.", "Bake at 400\u00B0F (200\u00B0C) for 14-16 minutes until salmon is nicely glazed and flaky."] }, { "id": "r2", "title": "Crispy Sheet-Pan Chicken Fajitas", "store": "No Frills", "flyerDate": "Till Thu, Oct 26", "flyerItem": "Club Pack Chicken Breasts", "originalPrice": 18.5, "flyerPrice": 11, "savings": 7.5, "servings": 4, "prepTime": "30 min", "calories": "480 kcal", "imageUrl": "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=800&q=80", "allergens": [], "ingredients": [{ "name": "Boneless Skinless Chicken Breasts (1kg)", "store": "No Frills", "isFlyerDeal": true, "flyerPrice": 11, "regPrice": 18.5 }, { "name": "Sweet Bell Peppers 3-pack", "store": "No Frills", "isFlyerDeal": true, "flyerPrice": 2.99, "regPrice": 5.49 }, { "name": "Yellow Onions 3lb Bag", "store": "No Frills", "isFlyerDeal": true, "flyerPrice": 1.99, "regPrice": 3.49 }, { "name": "Flour Tortillas 10-pack", "store": "No Frills", "isFlyerDeal": false, "flyerPrice": 2.99, "regPrice": 2.99 }], "steps": ["Slice chicken breasts and bell peppers into even strips.", "Toss on large sheet pan with cumin, chili powder, oregano, olive oil and salt.", "Roast at 425\u00B0F (220\u00B0C) for 20 minutes until edges caramelize.", "Serve sizzling warm with charred tortillas and fresh lime wedges."] }, { "id": "r3", "title": "Creamy Spinach Tortellini Bake", "store": "FreshCo", "flyerDate": "Till Wed, Oct 25", "flyerItem": "Olivieri Fresh Tortellini", "originalPrice": 8.99, "flyerPrice": 4.49, "savings": 4.5, "servings": 3, "prepTime": "20 min", "calories": "510 kcal", "imageUrl": "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=800&q=80", "allergens": ["Dairy", "Gluten"], "ingredients": [{ "name": "Olivieri Three Cheese Tortellini (700g)", "store": "FreshCo", "isFlyerDeal": true, "flyerPrice": 4.49, "regPrice": 8.99 }, { "name": "Organic Baby Spinach (312g)", "store": "FreshCo", "isFlyerDeal": true, "flyerPrice": 2.49, "regPrice": 4.49 }, { "name": "Heavy Whipping Cream (473ml)", "store": "FreshCo", "isFlyerDeal": false, "flyerPrice": 3.29, "regPrice": 3.29 }], "steps": ["Boil tortellini in salted water for 4 minutes and drain.", "Wilt spinach in a skillet with garlic and cream.", "Combine pasta with sauce, top with mozzarella and broil until bubbly."] }, { "id": "r4", "title": "Slow-Cooked Beef & Bean Chili", "store": "Walmart", "flyerDate": "Till Wed, Oct 25", "flyerItem": "Lean Ground Beef Value Pack", "originalPrice": 17, "flyerPrice": 10.97, "savings": 6.03, "servings": 6, "prepTime": "40 min", "calories": "450 kcal", "imageUrl": "https://images.unsplash.com/photo-1541832676-9b763b0239ab?auto=format&fit=crop&w=800&q=80", "allergens": [], "ingredients": [{ "name": "Lean Ground Beef (1.2kg)", "store": "Walmart", "isFlyerDeal": true, "flyerPrice": 10.97, "regPrice": 17 }, { "name": "Great Value Kidney Beans 2 Cans", "store": "Walmart", "isFlyerDeal": true, "flyerPrice": 1.94, "regPrice": 3 }, { "name": "Great Value Diced Tomatoes 2 Cans", "store": "Walmart", "isFlyerDeal": true, "flyerPrice": 2.5, "regPrice": 4.38 }], "steps": ["Brown ground beef in a deep pot with onions and garlic.", "Stir in spices, beans, crushed tomatoes and a splash of broth.", "Simmer gently on low heat for 35 minutes until rich and thick."] }]);
+const stores = ['All stores', ...new Set(sampleRecipes.map((recipe) => recipe.store))];
+const times = [{ label: 'Any time', value: null }, { label: '30 min or less', value: 30 }, { label: '20 min or less', value: 20 }];
 
-    const visibleDeals = filter(
-        dealsList,
-        (deal) =>
-            compare(activeStoreFilter, 'All Stores', 'equals') ||
-            compare(deal.store, activeStoreFilter, 'equals')
-    );
+export default function Home() {
+    const focused = useIsFocused();
+    const [store, setStore] = useState('All stores');
+    const [maxMinutes, setMaxMinutes] = useState<number | null>(null);
+    const [allergies] = useAtom(allergyFiltersAtom);
+    const [session] = useAtom(authSessionAtom);
+    const [authReady] = useAtom(authReadyAtom);
+    const [discoveryY, setDiscoveryY] = useState(0);
+    const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
+    const { width } = useWindowDimensions();
+    const wide = width >= 1024;
+    const grid = width >= 700;
+    const meals = useMemo(() => filterRecipes(sampleRecipes, { store, maxMinutes, excludedAllergens: allergies }), [store, maxMinutes, allergies]);
 
-    const allergySafeDeals = filter(
-        visibleDeals,
-        (deal) =>
-            !deal.allergens.some((allergen: string) =>
-                allergyFilters.some((selectedAllergen) =>
-                    compare(allergen, selectedAllergen, 'equals')
-                )
-            )
-    );
+    function openProfile() {
+        if (session) router.navigate('/(tabs)/profile');
+        else {
+            clearPendingInterview();
+            router.push({ pathname: '/profile-interview', params: { mode: 'create' } });
+        }
+    }
 
-    return <><StatusBar barStyle="dark-content"/><Tabs.Screen options={{ "headerShown": false, "tabBarIcon": ({ color, size }) => <MaterialDesignIcons color={color} name="tag-outline" size={size}/>, "title": "Deals" }}/><SafeAreaView edges={["top"]} style={styles.exploreSafeArea}><View style={styles.exploreHeader}><View style={styles.topLocationRow}><View style={styles.locationGroup}><MaterialDesignIcons color={theme.colors.primary} name="map-marker" size={18}/><Text style={styles.locationText}>Toronto, ON • 5 Flyers Active</Text></View><View style={styles.savingsStat}><Text style={styles.savingsStatText}>Avg 38% Off</Text></View></View><Text accessibilityRole="header" accessibilityLevel={1} style={styles.pageMainTitle}>Meal Plans for Us</Text><Text style={styles.pageSubtitle}>Recipes automatically generated from this week&apos;s grocery flyers</Text></View><View style={styles.storeFilterScroll}><ScrollView contentContainerStyle={styles.filtersScrollContentContainer} horizontal showsHorizontalScrollIndicator={false}>{map(storeFilterOptions, (item, storeFiltersRepeaterIndex) => <Pressable key={storeFiltersRepeaterIndex} accessibilityRole="button" accessibilityLabel={`Filter deals by ${item}`} aria-pressed={item === activeStoreFilter} style={{ "backgroundColor": conditionalSafe([{ "condition": `${item} = ${activeStoreFilter}`, "value": "#222222" }], "#F7F7F7"), "borderColor": conditionalSafe([{ "condition": `${item} = ${activeStoreFilter}`, "value": "#222222" }], "#EBEBEB"), "borderRadius": 20, "borderWidth": 1, "marginRight": 8, "paddingBottom": 7, "paddingLeft": 14, "paddingRight": 14, "paddingTop": 7 }} onPress={() => { store.set(activeStoreFilterAtom, item); }}><Text style={{ "color": conditionalSafe([{ "condition": `${item} = ${activeStoreFilter}`, "value": "#FFFFFF" }], "#484848"), "fontSize": 12, "fontWeight": "700" }}>{item}</Text></Pressable>)}</ScrollView></View><ScrollView contentContainerStyle={styles.dealsScrollViewContentContainer}><View style={styles.allergenBanner}><MaterialDesignIcons color="#008A05" name="shield-check-outline" size={20}/><Text style={styles.bannerText}>Recipes filtered against your allergy preferences.</Text></View>{map(allergySafeDeals, (item) => <DealRecipeCard key={item.id} recipeData={item}/>)}</ScrollView></SafeAreaView></>;
+    if (!focused) return null;
+
+    return <SafeAreaView edges={['top']} style={styles.page}>
+        <StatusBar barStyle='dark-content' />
+        <ScrollView ref={scrollRef} contentContainerStyle={styles.content}>
+            <View style={[styles.hero, wide && styles.heroWide]}>
+                <View style={styles.heroCopy}>
+                    <Text style={styles.eyebrow}>A LITTLE MORE ROOM AT THE TABLE</Text>
+                    <Text accessibilityRole='header' accessibilityLevel={1} style={styles.heroTitle}>Eat better.{'\n'}Spend less.{'\n'}Waste less.</Text>
+                    <Text style={styles.heroDescription}>Good meals start with a little inspiration. Explore approachable recipes and make a plan that works for you.</Text>
+                    <View style={styles.profilePrompt}>
+                        <View style={styles.profileIntro}>
+                            <View style={styles.profileIcon}><MaterialDesignIcons name='account-heart-outline' size={23} color='#2d6a5b' /></View>
+                            <View style={styles.profileIntroText}>
+                                <Text style={styles.profileTitle}>{session ? 'Your preferences, your way' : 'Make PlateWise yours'}</Text>
+                                <Text style={styles.profileDescription}>{session ? 'View or update your food preferences anytime.' : 'Create a profile to keep your food preferences in one place.'}</Text>
+                            </View>
+                        </View>
+                        <View style={styles.profileAction}>
+                            <SlideButton label={!authReady ? 'Please wait…' : session ? 'View your profile' : 'Create your profile'} icon='arrow-right' disabled={!authReady} onPress={openProfile} />
+                        </View>
+                    </View>
+                    <View style={styles.heroActions}>
+                        <SlideButton label='Browse meals' icon='arrow-down' variant='secondary' onPress={() => scrollRef.current?.scrollTo({ y: discoveryY, animated: true })} />
+                        <SlideButton label='See a sample week' icon='arrow-right' variant='secondary' onPress={() => router.navigate('/(tabs)/planner')} />
+                    </View>
+                </View>
+                <View style={[styles.heroImageFrame, wide && styles.heroImageWide]}>
+                    <Image source={sampleRecipes[0].imageUrl} contentFit='cover' accessibilityLabel='A prepared salmon meal' style={styles.heroImage} />
+                </View>
+            </View>
+            <View style={styles.discovery} onLayout={(event) => setDiscoveryY(event.nativeEvent.layout.y)}>
+                <View style={styles.sectionHeading}>
+                    <View style={styles.sectionHeadingText}>
+                        <Text style={styles.kicker}>YOUR NEXT MEAL, SORTED</Text>
+                        <Text accessibilityRole='header' accessibilityLevel={2} style={styles.sectionTitle}>Find something good</Text>
+                        <Text style={styles.sectionSubtitle}>Simple ideas for everyday cooking. Pick a recipe to see what goes into it.</Text>
+                    </View>
+                    <Text style={styles.sampleTag}>Sample recipes</Text>
+                </View>
+                <Text style={styles.filterLabel}>PREP TIME</Text>
+                <View style={styles.filterRow}>{times.map((item) => <FilterChip key={item.label} label={item.label} selected={maxMinutes === item.value} onPress={() => setMaxMinutes(item.value)} />)}</View>
+                <Text style={styles.filterLabel}>STORE</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.storeFilters}>{stores.map((item) => <FilterChip key={item} label={item} selected={store === item} onPress={() => setStore(item)} />)}</ScrollView>
+                <Text style={styles.resultCount}>{meals.length} {meals.length === 1 ? 'meal' : 'meals'} to explore{allergies.length > 0 ? ' · Your allergy filters are applied' : ''}</Text>
+                {meals.length ? <View style={styles.grid}>{meals.map((meal) => <MealCard key={meal.id} recipe={meal} grid={grid} />)}</View> : <View style={styles.empty}>
+                    <Text style={styles.emptyTitle}>No meals match those filters</Text><Text style={styles.emptyText}>Try another store or a longer prep time.</Text>
+                    <Pressable accessibilityRole='button' onPress={() => { setStore('All stores'); setMaxMinutes(null); }}><Text style={styles.resetText}>Clear filters</Text></Pressable>
+                </View>}
+                <Text style={styles.disclaimer}>Recipes and store references are examples, not current flyer offers.</Text>
+            </View>
+        </ScrollView>
+    </SafeAreaView>;
+}
+
+function FilterChip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+    return <Pressable accessibilityRole='button' accessibilityState={{ selected }} onPress={onPress} style={[styles.chip, selected && styles.chipSelected]}><Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text></Pressable>;
+}
+
+function MealCard({ recipe, grid }: { recipe: Recipe; grid: boolean }) {
+    return <Pressable accessibilityRole='button' accessibilityLabel={`${recipe.title}, ${recipe.prepTime}, serves ${recipe.servings}`} accessibilityHint='View recipe and ingredients' onPress={() => openRecipeDetail({ recipeData: recipe })} style={[styles.mealCard, grid && styles.mealCardGrid]}>
+        <Image source={recipe.imageUrl} contentFit='cover' accessibilityLabel={`${recipe.title}, plated`} style={styles.mealImage} />
+        <View style={styles.mealBody}>
+            <View style={styles.mealMeta}><Text style={styles.mealStore}>{recipe.store} · SAMPLE</Text><Text style={styles.mealTime}>{recipe.prepTime}</Text></View>
+            <Text style={styles.mealTitle}>{recipe.title}</Text>
+            <Text numberOfLines={2} style={styles.ingredients}>{recipe.ingredients.map((item) => item.name.replace(/\s*\([^)]*\)/g, '')).join(' · ')}</Text>
+            <View style={styles.mealFooter}><Text style={styles.servings}>Serves {recipe.servings}</Text><Text style={styles.viewRecipe}>View recipe  →</Text></View>
+        </View>
+    </Pressable>;
 }
 
 const styles = StyleSheet.create({
-        "allergenBanner": {
-            "alignItems": "center",
-            "backgroundColor": "#F9F9F9",
-            "borderColor": "#EEEEEE",
-            "borderRadius": 12,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "marginBottom": 16,
-            "padding": 12
-        },
-        "bannerText": {
-            "color": "#484848",
-            "flexBasis": 0,
-            "flexGrow": 1,
-            "flexShrink": 1,
-            "fontSize": 12,
-            "marginLeft": 8
-        },
-        "dealsScrollViewContentContainer": {
-            "alignSelf": "center",
-            "maxWidth": 960,
-            "paddingBottom": 24,
-            "paddingLeft": 20,
-            "paddingRight": 20,
-            "width": "100%"
-        },
-        "exploreHeader": {
-            "alignSelf": "center",
-            "maxWidth": 960,
-            "paddingBottom": 10,
-            "paddingLeft": 20,
-            "paddingRight": 20,
-            "paddingTop": 12,
-            "width": "100%"
-        },
-        "exploreSafeArea": {
-            "backgroundColor": "#FFFFFF",
-            "flexBasis": 0,
-            "flexGrow": 1,
-            "flexShrink": 1
-        },
-        "filtersScrollContentContainer": {
-            "alignItems": "center",
-            "alignSelf": "center",
-            "maxWidth": 960,
-            "paddingLeft": 20,
-            "paddingRight": 20,
-            "width": "100%"
-        },
-        "locationGroup": {
-            "alignItems": "center",
-            "flexDirection": "row"
-        },
-        "locationText": {
-            "color": "#222222",
-            "fontSize": 13,
-            "fontWeight": "700",
-            "marginLeft": 4
-        },
-        "pageMainTitle": {
-            "color": "#222222",
-            "fontSize": 24,
-            "fontWeight": "800",
-            "marginTop": 10
-        },
-        "pageSubtitle": {
-            "color": "#717171",
-            "fontSize": 13,
-            "marginTop": 3
-        },
-        "savingsStat": {
-            "backgroundColor": "#FFF0F2",
-            "borderRadius": 12,
-            "paddingBottom": 4,
-            "paddingLeft": 9,
-            "paddingRight": 9,
-            "paddingTop": 4
-        },
-        "savingsStatText": {
-            "color": theme.colors.primary,
-            "fontSize": 11,
-            "fontWeight": "700"
-        },
-        "storeFilterScroll": {
-            "height": 44,
-            "marginBottom": 8
-        },
-        "topLocationRow": {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "space-between"
-        }
-    });
+    page: { flex: 1, backgroundColor: '#f7f8f4' }, content: { width: '100%', maxWidth: HOME_MAX_WIDTH, alignSelf: 'center', paddingHorizontal: HOME_EDGE_PADDING, paddingTop: 20, paddingBottom: 48 },
+    hero: { backgroundColor: '#173f33', borderRadius: 20, overflow: 'hidden' }, heroWide: { flexDirection: 'row', minHeight: 390 }, heroCopy: { padding: 28, flex: 1, justifyContent: 'center' },
+    eyebrow: { color: '#b9d8b3', fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 16 }, heroTitle: { color: '#fff', fontSize: 39, lineHeight: 45, fontWeight: '800', letterSpacing: -1 }, heroDescription: { color: '#dbe9dd', fontSize: 15, lineHeight: 23, maxWidth: 420, marginTop: 16 },
+    profilePrompt: { maxWidth: 520, marginTop: 22, padding: 16, backgroundColor: '#edf4e6', borderRadius: 14, shadowColor: '#0b261c', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 14, elevation: 5 },
+    profileIntro: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 }, profileIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#d8e8ce', alignItems: 'center', justifyContent: 'center' }, profileIntroText: { flex: 1 },
+    profileTitle: { color: '#203d30', fontSize: 16, fontWeight: '800' }, profileDescription: { color: '#50675a', fontSize: 13, lineHeight: 19, marginTop: 4 },
+    profileAction: { alignItems: 'flex-start', marginTop: 14 },
+    heroActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
+    heroImageFrame: { height: 220, overflow: 'hidden', backgroundColor: '#6d846b' }, heroImageWide: { width: '42%', height: 'auto' }, heroImage: { width: '100%', height: '100%' },
+    discovery: { paddingTop: 38 }, sectionHeading: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, marginBottom: 22 }, sectionHeadingText: { flexShrink: 1 }, kicker: { color: '#547461', fontSize: 10, fontWeight: '800', letterSpacing: 1.1, marginBottom: 7 }, sectionTitle: { color: '#213c30', fontSize: 28, fontWeight: '800', letterSpacing: -0.6 }, sectionSubtitle: { color: '#66746c', fontSize: 14, lineHeight: 21, marginTop: 7 }, sampleTag: { color: '#536b5c', backgroundColor: '#e7eee5', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5, fontSize: 11, fontWeight: '700' },
+    filterLabel: { color: '#748178', fontSize: 10, letterSpacing: 0.8, fontWeight: '800', marginBottom: 8 }, filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 18 }, storeFilters: { gap: 8, paddingBottom: 2 }, chip: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#dae2d9', borderRadius: 20, paddingHorizontal: 14, minHeight: 38, justifyContent: 'center' }, chipSelected: { backgroundColor: '#254f3d', borderColor: '#254f3d' }, chipText: { color: '#53645a', fontSize: 13, fontWeight: '600' }, chipTextSelected: { color: '#fff' }, resultCount: { color: '#748178', fontSize: 12, marginTop: 21, marginBottom: 12 },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }, mealCard: { width: '100%', backgroundColor: '#fff', borderRadius: 14, overflow: 'hidden', borderColor: '#e5ebe3', borderWidth: 1 }, mealCardGrid: { width: '48%' }, mealImage: { width: '100%', height: 195, backgroundColor: '#dce7da' }, mealBody: { padding: 16 }, mealMeta: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 }, mealStore: { color: '#63806b', fontSize: 10, fontWeight: '800', letterSpacing: 0.6 }, mealTime: { color: '#64736a', fontSize: 12, fontWeight: '600' }, mealTitle: { color: '#23392e', fontSize: 18, fontWeight: '800', marginTop: 8 }, ingredients: { color: '#748178', fontSize: 13, lineHeight: 20, marginTop: 8, minHeight: 40 }, mealFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#edf1eb', paddingTop: 12, marginTop: 14 }, servings: { color: '#748178', fontSize: 12, fontWeight: '600' }, viewRecipe: { color: '#2d6a5b', fontSize: 13, fontWeight: '800' },
+    empty: { backgroundColor: '#fff', borderRadius: 14, padding: 24 }, emptyTitle: { color: '#213c30', fontSize: 16, fontWeight: '800' }, emptyText: { color: '#748178', marginTop: 6 }, resetText: { color: '#2d6a5b', fontWeight: '700', marginTop: 14 }, disclaimer: { color: '#748178', fontSize: 12, lineHeight: 18, marginTop: 24 }
+});

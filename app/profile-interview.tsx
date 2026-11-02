@@ -1,23 +1,27 @@
 import { useAtom } from '@/lib/useAtom';
+import { ProfileAccessGate } from '@/components/ProfileAccessGate';
+import { ProfileSignInDialog } from '@/components/ProfileSignInDialog';
+import { clearPendingInterview, getPendingInterview, savePendingInterview } from '@/logic/profile/pendingInterview';
+import { completeInterviewForUser } from '@/logic/profile/completeInterview';
+import { authErrorAtom, authReadyAtom, authSessionAtom } from '@/logic/auth/authState';
 import { theme } from '@/lib/theme';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
 import { PROFILE_ROUTE } from '@/logic/profile/interview';
-import { applyProfileOption, type ProfileOptionField } from '@/logic/profile/profileSetup';
+import { applyProfileOption, getInterviewProfile, type ProfileOptionField } from '@/logic/profile/profileSetup';
 import {
     clampPageIndex,
-    getStepsInGroup,
+    getInterviewSteps,
     isWizardStepAnswered,
     PROFILE_WIZARD_GROUPS,
-    PROFILE_WIZARD_STEPS,
     type ProfileWizardStep
 } from '@/logic/profile/profileWizard';
 import { loadProfile, saveProfile } from '@/logic/profile/profileStorage';
 import { applyProfilePatch, createProfile, profileAtom, profileHydratedAtom } from '@/logic/profile/profileState';
-import type { ProfilePatch } from '@/logic/profile/types';
+import type { Profile, ProfilePatch } from '@/logic/profile/types';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
-import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AccessibilityInfo, Alert, Animated, Easing, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 /**
@@ -44,32 +48,124 @@ const emptySelections: Record<ProfileOptionField, string[]> = {
 };
 
 export default function ProfileInterview() {
-    const [profile, setProfile] = useAtom(profileAtom);
+    const [ready] = useAtom(authReadyAtom);
+    const [session] = useAtom(authSessionAtom);
+    const [hydrated, setHydrated] = useAtom(profileHydratedAtom);
+    const [authError, setAuthError] = useAtom(authErrorAtom);
+    const [accountProfile, setProfile] = useAtom(profileAtom);
     const [, setAllergyFilters] = useAtom(allergyFiltersAtom);
-    const [, setHydrated] = useAtom(profileHydratedAtom);
-    const [displayName, setDisplayName] = useState('');
-    const [selections, setSelections] = useState(emptySelections);
+    const [pending, setPending] = useState<ProfilePatch | null>(() => getPendingInterview());
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [completionError, setCompletionError] = useState(false);
+    const [attempt, setAttempt] = useState(0);
+    const [retryingLoad, setRetryingLoad] = useState(false);
+    const completing = useRef(false);
+
+    useEffect(() => {
+        if (!pending || !ready || !hydrated || !session || completing.current) return;
+        completing.current = true;
+        completeInterviewForUser(pending, session.user.id, accountProfile).then((accountProfile) => {
+            clearPendingInterview();
+            setProfile(accountProfile);
+            setAllergyFilters(accountProfile.allergies);
+            setDialogOpen(false);
+            router.replace(PROFILE_ROUTE);
+        }).catch(() => {
+            completing.current = false;
+            setCompletionError(true);
+        });
+    }, [pending, ready, hydrated, session, accountProfile, setProfile, setAllergyFilters, attempt]);
+
+    function requestSignIn(patch: ProfilePatch) {
+        savePendingInterview(patch);
+        setPending(patch);
+        setDialogOpen(true);
+    }
+
+    function closeSignIn() {
+        if (!session) {
+            clearPendingInterview();
+            setPending(null);
+        }
+        setDialogOpen(false);
+    }
+
+    async function retryProfileLoad() {
+        if (!session || retryingLoad) return;
+        setRetryingLoad(true);
+        try {
+            const accountProfile = await loadProfile();
+            if (!accountProfile || accountProfile.id !== session.user.id) throw new Error('Account changed');
+            setProfile(accountProfile);
+            setAllergyFilters(accountProfile.allergies);
+            setAuthError(null);
+            setHydrated(true);
+        } catch {
+            setAuthError('Unable to load your profile. Check your connection and try again.');
+        } finally { setRetryingLoad(false); }
+    }
+
+    let content;
+    if (ready && pending && session && !hydrated && authError) {
+        content = <SafeAreaView style={styles.safeArea}><Text>Could not load your account. Your answers are still available.</Text><Pressable accessibilityRole='button' disabled={retryingLoad} onPress={retryProfileLoad}><Text style={styles.close}>{retryingLoad ? 'Trying again…' : 'Try again'}</Text></Pressable></SafeAreaView>;
+    } else if (!ready || (pending && session && !completionError)) {
+        content = <SafeAreaView style={styles.safeArea}><Text>Loading profile…</Text></SafeAreaView>;
+    } else if (completionError) {
+        content = <SafeAreaView style={styles.safeArea}><Text>Could not save your profile. Your answers are still available; please try again.</Text><Pressable accessibilityRole='button' onPress={() => { setCompletionError(false); setAttempt((value) => value + 1); }}><Text style={styles.close}>Try again</Text></Pressable></SafeAreaView>;
+    } else if (session) {
+        content = <ProfileAccessGate><ProfileInterviewContent onRequireSignIn={requestSignIn} /></ProfileAccessGate>;
+    } else {
+        content = <ProfileInterviewContent onRequireSignIn={requestSignIn} />;
+    }
+
+    return <>{content}{dialogOpen && <ProfileSignInDialog onClose={closeSignIn} onAuthenticated={() => setDialogOpen(false)} />}</>;
+}
+
+function ProfileInterviewContent({ onRequireSignIn }: { onRequireSignIn: (patch: ProfilePatch) => void }) {
+    const [profile] = useAtom(profileAtom);
+    const [hydrated] = useAtom(profileHydratedAtom);
+    const { mode } = useLocalSearchParams<{ mode?: string }>();
+    if (!hydrated) return <SafeAreaView style={styles.safeArea}><Text>Loading profile…</Text></SafeAreaView>;
+    return <InterviewForm key={`${mode ?? 'create'}-${profile?.id ?? 'guest'}`} initialProfile={getInterviewProfile(profile, mode)} creating={mode !== 'edit'} onRequireSignIn={onRequireSignIn} />;
+}
+
+function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialProfile: Profile | null; creating: boolean; onRequireSignIn: (patch: ProfilePatch) => void }) {
+    const [profile, setProfile] = useAtom(profileAtom);
+    const [session] = useAtom(authSessionAtom);
+    const [, setAllergyFilters] = useAtom(allergyFiltersAtom);
+    const [hydrated] = useAtom(profileHydratedAtom);
+    const [displayName, setDisplayName] = useState(initialProfile?.displayName ?? '');
+    const [selections, setSelections] = useState<Record<ProfileOptionField, string[]>>(() => initialProfile ? {
+        householdSize: initialProfile.householdSize ? [formatHouseholdSize(initialProfile.householdSize)] : [],
+        savingsGoal: initialProfile.savingsGoal ? [initialProfile.savingsGoal] : [],
+        allergies: initialProfile.allergies,
+        dietaryPreferences: initialProfile.dietaryPreferences,
+        mealPlanningPreferences: initialProfile.mealPlanningPreferences,
+        preferredStores: initialProfile.preferredStores
+    } : emptySelections);
     const [pageIndex, setPageIndex] = useState(0);
     const [saving, setSaving] = useState(false);
+    const [saveError, setSaveError] = useState('');
     const { width } = useWindowDimensions();
     const grouped = Platform.OS === 'web' && width >= GROUPED_MIN_WIDTH;
 
     const pages = useMemo<WizardPage[]>(() => {
+        const steps = getInterviewSteps(creating);
         if (grouped) {
             return PROFILE_WIZARD_GROUPS.map((group) => ({
                 key: group.id,
                 label: group.label,
                 description: group.description,
-                steps: getStepsInGroup(group.id)
+                steps: steps.filter((step) => step.group === group.id)
             }));
         }
-        return PROFILE_WIZARD_STEPS.map((step) => ({
+        return steps.map((step) => ({
             key: step.field,
             label: step.label,
             description: step.description,
             steps: [step]
         }));
-    }, [grouped]);
+    }, [grouped, creating]);
 
     // Derived rather than stored, so resizing across the breakpoint mid-setup
     // lands on a page that exists instead of an index past the end.
@@ -87,25 +183,6 @@ export default function ProfileInterview() {
     const unanswered = page.steps.filter((step) => !isWizardStepAnswered(step, valuesForStep(step)));
     const canAdvance = unanswered.length === 0;
 
-    useEffect(() => {
-        loadProfile().then((storedProfile) => {
-            if (storedProfile) {
-                setProfile(storedProfile);
-                setDisplayName(storedProfile.displayName);
-                setSelections({
-                    householdSize: storedProfile.householdSize ? [formatHouseholdSize(storedProfile.householdSize)] : [],
-                    savingsGoal: storedProfile.savingsGoal ? [storedProfile.savingsGoal] : [],
-                    allergies: storedProfile.allergies,
-                    dietaryPreferences: storedProfile.dietaryPreferences,
-                    mealPlanningPreferences: storedProfile.mealPlanningPreferences,
-                    preferredStores: storedProfile.preferredStores
-                });
-            }
-            setHydrated(true);
-        });
-    }, [setHydrated, setProfile]);
-
-    const progressWidth = `${((currentPage + 1) / pages.length) * 100}%`;
 
     function toggleOption(field: ProfileOptionField, option: string) {
         setSelections((current) => ({
@@ -125,7 +202,7 @@ export default function ProfileInterview() {
     async function saveSetup() {
         setSaving(true);
         const patch: ProfilePatch = {
-            displayName,
+            ...(!creating && { displayName }),
             householdSize: parseHouseholdSize(selections.householdSize[0]),
             savingsGoal: selections.savingsGoal[0],
             allergies: selections.allergies,
@@ -134,12 +211,19 @@ export default function ProfileInterview() {
             preferredStores: selections.preferredStores,
             onboardingComplete: true
         };
-        const updatedProfile = profile ? applyProfilePatch(profile, patch) : createProfile(patch);
+        if (!session) {
+            try { onRequireSignIn(patch); setSaveError(''); }
+            catch { setSaveError('Could not prepare sign-in. Please try again.'); }
+            setSaving(false);
+            return;
+        }
+        const freshProfile = creating ? createProfile(patch) : null;
+        const updatedProfile = freshProfile ? { ...freshProfile, id: profile?.id ?? freshProfile.id, displayName: profile?.displayName ?? freshProfile.displayName } : profile ? applyProfilePatch(profile, patch) : createProfile(patch);
+        try { await saveProfile(updatedProfile); } catch { setSaving(false); Alert.alert('Could not save profile', 'Please check your connection and try again.'); return; }
         setProfile(updatedProfile);
         setAllergyFilters(updatedProfile.allergies);
-        await saveProfile(updatedProfile);
         setSaving(false);
-        router.replace(PROFILE_ROUTE);
+        router.replace(session ? PROFILE_ROUTE : '/');
     }
 
     return (
@@ -151,8 +235,8 @@ export default function ProfileInterview() {
                 </View>
                 <Pressable
                     accessibilityRole='button'
-                    accessibilityLabel='Close setup and return to your profile'
-                    onPress={() => router.replace(PROFILE_ROUTE)}
+                    accessibilityLabel={session ? 'Close setup and return to your profile' : 'Close setup and return home'}
+                    onPress={() => router.replace(session ? PROFILE_ROUTE : '/')}
                     style={styles.closeButton}
                 >
                     <Text style={styles.close}>Close</Text>
@@ -167,7 +251,7 @@ export default function ProfileInterview() {
                         <Text style={styles.stepCount}>STEP {currentPage + 1} OF {pages.length}</Text>
                         <Text style={styles.stepLabel}>{page.label}</Text>
                     </View>
-                    <View style={styles.progressTrack}><View style={[styles.progressFill, { width: progressWidth }]} /></View>
+                    <InterviewProgress step={currentPage + 1} total={pages.length} />
                     <View style={styles.questionCard}>
                         <Text accessibilityRole='header' accessibilityLevel={2} style={styles.question}>
                             {page.label}
@@ -239,24 +323,61 @@ export default function ProfileInterview() {
                                 : `Choose an option for ${unanswered.length} more questions to continue.`}
                         </Text>
                     )}
+                    {!!saveError && <Text accessibilityRole='alert' style={styles.requirement}>{saveError}</Text>}
                     <View style={styles.navigation}>
                         <Pressable accessibilityRole='button' disabled={currentPage === 0} onPress={goBack} style={[styles.backButton, currentPage === 0 && styles.disabledButton]}>
                             <Text style={[styles.backText, currentPage === 0 && styles.disabledText]}>Back</Text>
                         </Pressable>
                         <Pressable
                             accessibilityRole='button'
-                            disabled={saving || !canAdvance}
+                            disabled={saving || !hydrated || !canAdvance}
                             onPress={isLastPage ? saveSetup : goNext}
                             style={[styles.nextButton, (saving || !canAdvance) && styles.disabledNextButton]}
                         >
                             <Text style={styles.nextText}>{saving ? 'Saving…' : isLastPage ? 'Create profile' : 'Next'}</Text>
                         </Pressable>
                     </View>
-                    <Text style={styles.editHint}>You can change these preferences later from your profile.</Text>
+                    <Text style={styles.editHint}>You can change these preferences later.</Text>
                 </View>
             </ScrollView>
         </SafeAreaView>
     );
+}
+
+function InterviewProgress({ step, total }: { step: number; total: number }) {
+    const percentage = (step / total) * 100;
+    const [progress] = useState(() => new Animated.Value(percentage));
+    const [reduceMotion, setReduceMotion] = useState(true);
+
+    useEffect(() => {
+        let active = true;
+        AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+            if (active) setReduceMotion(enabled);
+        }).catch(() => {});
+        const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+        return () => { active = false; subscription.remove(); };
+    }, []);
+
+    useEffect(() => {
+        progress.stopAnimation();
+        if (reduceMotion) {
+            progress.setValue(percentage);
+            return;
+        }
+        const animation = Animated.timing(progress, {
+            toValue: percentage,
+            duration: 350,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false
+        });
+        animation.start();
+        return () => animation.stop();
+    }, [percentage, progress, reduceMotion]);
+
+    const width = progress.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] });
+    return <View accessibilityRole='progressbar' accessibilityLabel='Profile setup progress' accessibilityValue={{ min: 0, max: total, now: step }} style={styles.progressTrack}>
+        <Animated.View style={[styles.progressFill, { width }]} />
+    </View>;
 }
 
 function parseHouseholdSize(value?: string): number | undefined {

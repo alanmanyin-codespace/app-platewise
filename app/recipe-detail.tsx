@@ -47,7 +47,7 @@ export default function RecipeDetail() {
                                 <Text style={styles.savingsFlagText}>
                                     {join(
                                         [
-                                            'SAVE $',
+                                            'EXAMPLE SAVINGS $',
                                             formatNumber(selectedRecipe.savings, {
                                                 minimumFractionDigits: 2,
                                                 maximumFractionDigits: 2
@@ -61,6 +61,7 @@ export default function RecipeDetail() {
                         <Text accessibilityRole='header' accessibilityLevel={1} style={styles.detailTitle}>
                             {selectedRecipe.title}
                         </Text>
+                        <Text style={styles.exampleNotice}>Sample recipe and prices. Flyer offers are not current.</Text>
                         <View style={styles.metricsBar}>
                             <View style={styles.metricTime}>
                                 <MaterialDesignIcons
@@ -89,7 +90,7 @@ export default function RecipeDetail() {
                             </View>
                         </View>
                         <Text accessibilityRole='header' accessibilityLevel={2} style={styles.ingHeading}>
-                            Ingredients &amp; Flyer Deals
+                            Ingredients &amp; Example Prices
                         </Text>
                         {map(
                             selectedRecipe.ingredients,
@@ -99,7 +100,7 @@ export default function RecipeDetail() {
                                         <Text style={styles.ingName}>{name}</Text>
                                         {isFlyerDeal && (
                                             <Text style={styles.flyerBadge}>
-                                                ★ MATCHED TO THIS WEEK&apos;S FLYER
+                                                ★ SAMPLE FLYER ITEM
                                             </Text>
                                         )}
                                     </View>
@@ -178,7 +179,7 @@ export default function RecipeDetail() {
                             </Text>
                         </View>
                         <Text style={styles.storeLabel}>
-                            {join(['Available at ', selectedRecipe.store], {
+                            {join(['Example store: ', selectedRecipe.store], {
                                 type: 'separator',
                                 separator: ''
                             })}
@@ -204,6 +205,7 @@ export default function RecipeDetail() {
 }
 
 const styles = StyleSheet.create({
+    exampleNotice: { color: '#717171', fontSize: 12, marginTop: 8 },
     addGroceriesBtn: {
         alignItems: 'center',
         backgroundColor: theme.colors.primary,
