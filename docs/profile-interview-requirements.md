@@ -79,4 +79,4 @@ The name is optional. Other fields can be left blank and completed later.
 
 ## Current implementation status
 
-The profile state, local persistence, profile review/edit screen, and centered option-based wizard are implemented on the feature branch. Backend identity association remains future work.
+The profile state, local and Supabase persistence, profile review/edit screen, and centered option-based wizard are implemented. The wizard now follows [the recipe-linked interview design](features/recipe-profile-interview.md): household, cuisines, proteins, disliked ingredients, allergies, diet and Calgary stores. Cuisine, protein, ingredient and store lists come from platewise-api. Savings goal and meal planning are hidden; their stored values are kept. `logic/recipes/profileMatch.ts` applies the answers to recipes, but the recipe screens still use the sample recipes until the imported recipes are served to the app.
