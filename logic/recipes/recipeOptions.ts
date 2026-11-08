@@ -72,10 +72,13 @@ export async function loadRecipeOptions(
     return cached ? { ...cached, source: 'cache' } : { ...EMPTY, source: 'none' };
 }
 
-/** Case-insensitive name search: names starting with the query first, then the most-used ingredients. */
+/**
+ * Case-insensitive name search: names starting with the query first, then the most-used
+ * ingredients. An empty query lists the most-used ingredients.
+ */
 export function searchIngredients(list: IngredientOption[], query: string, limit = 20): IngredientOption[] {
     const needle = query.trim().toLowerCase();
-    if (!needle) return [];
+    if (!needle) return [...list].sort((a, b) => b.recipeCount - a.recipeCount).slice(0, limit);
     return list
         .filter((item) => item.name.toLowerCase().includes(needle))
         .sort((a, b) => Number(b.name.toLowerCase().startsWith(needle)) - Number(a.name.toLowerCase().startsWith(needle)) || b.recipeCount - a.recipeCount)

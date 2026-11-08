@@ -82,3 +82,18 @@ export function optionsForStep(step: ProfileWizardStep, lists: RemoteLists, sele
     const options = ['No preference', ...remote.filter((value) => value !== 'No preference')];
     return [...options, ...selected.filter((value) => !options.includes(value))];
 }
+
+/** One-line text for a closed dropdown: the first two choices, then a count. */
+export function selectionSummary(selected: string[], placeholder: string): string {
+    if (!selected.length) return placeholder;
+    const shown = selected.slice(0, 2).join(', ');
+    return selected.length > 2 ? `${shown} +${selected.length - 2} more` : shown;
+}
+
+/** Dropdown search: case-insensitive substring, options starting with the text first, otherwise in list order. */
+export function filterOptions(options: string[], query: string): string[] {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return options;
+    const matches = options.filter((option) => option.toLowerCase().includes(needle));
+    return [...matches.filter((option) => option.toLowerCase().startsWith(needle)), ...matches.filter((option) => !option.toLowerCase().startsWith(needle))];
+}

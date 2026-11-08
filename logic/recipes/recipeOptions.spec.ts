@@ -50,8 +50,8 @@ describe('ingredient search', () => {
     it('ranks prefix matches first, then by how many recipes use them', () => {
         expect(searchIngredients(list, 'CHEE').map((item) => item.key)).toEqual(['cheese', 'cheddar cheese', 'goat cheese']);
     });
-    it('returns nothing for an empty query and respects the limit', () => {
-        expect(searchIngredients(list, '  ')).toEqual([]);
+    it('lists the most-used ingredients for an empty query and respects the limit', () => {
+        expect(searchIngredients(list, '  ').map((item) => item.key)).toEqual(['cheddar cheese', 'cheese', 'goat cheese', 'chervil']);
         expect(searchIngredients(list, 'che', 2)).toHaveLength(2);
     });
 });

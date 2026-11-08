@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+    chunkSteps,
     clampPageIndex,
     getInterviewSteps,
     getNextWizardStep,
@@ -29,8 +30,12 @@ describe('profile wizard steps', () => {
         const options = (field: string) => PROFILE_WIZARD_STEPS.find((step) => step.field === field)?.options;
         expect(options('allergies')).toEqual(['None', 'Peanuts', 'Tree Nuts', 'Dairy', 'Gluten', 'Shellfish', 'Fish', 'Eggs', 'Soy', 'Sesame']);
         expect(options('dietaryPreferences')).toEqual(['No preference', 'Vegetarian', 'Vegan', 'Pescatarian', 'No pork', 'No beef']);
+        expect(PROFILE_WIZARD_STEPS.find((step) => step.field === 'householdSize')?.kind).toBe('options');
         for (const field of ['cuisines', 'proteins', 'preferredStores']) expect(options(field)).toEqual(['No preference']);
         expect(PROFILE_WIZARD_STEPS.find((step) => step.field === 'dislikedIngredients')?.kind).toBe('search');
+        for (const field of ['cuisines', 'proteins', 'allergies', 'dietaryPreferences', 'preferredStores']) {
+            expect(PROFILE_WIZARD_STEPS.find((step) => step.field === field)?.kind).toBe('dropdown');
+        }
         expect(PROFILE_WIZARD_GROUPS.at(-1)?.label).toBe('Where you shop');
     });
 
@@ -90,5 +95,16 @@ describe('page index clamping', () => {
 
     it('falls back to the first page when there are none', () => {
         expect(clampPageIndex(2, 0)).toBe(0);
+    });
+});
+
+describe('mobile pages', () => {
+    it('puts three questions on each page', () => {
+        expect(chunkSteps(getInterviewSteps(true), 3).map((page) => page.map((step) => step.field))).toEqual([
+            ['householdSize', 'cuisines', 'proteins'],
+            ['dislikedIngredients', 'allergies', 'dietaryPreferences'],
+            ['preferredStores']
+        ]);
+        expect(chunkSteps(getInterviewSteps(false), 3).map((page) => page.length)).toEqual([3, 3, 2]);
     });
 });

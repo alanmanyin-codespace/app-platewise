@@ -7,9 +7,10 @@ import { authErrorAtom, authReadyAtom, authSessionAtom } from '@/logic/auth/auth
 import { theme } from '@/lib/theme';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
 import { PROFILE_ROUTE } from '@/logic/profile/interview';
-import { applyProfileOption, getInterviewProfile, initialSelections, keepHiddenValues, optionsForStep, parseHouseholdSize, type ProfileOptionField } from '@/logic/profile/profileSetup';
+import { applyProfileOption, getInterviewProfile, initialSelections, keepHiddenValues, filterOptions, optionsForStep, parseHouseholdSize, selectionSummary, type ProfileOptionField } from '@/logic/profile/profileSetup';
 import { loadRecipeOptions, searchIngredients, type RecipeOptions } from '@/logic/recipes/recipeOptions';
 import {
+    chunkSteps,
     clampPageIndex,
     getInterviewSteps,
     isWizardStepAnswered,
@@ -32,6 +33,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
  * viewport empty and turns setup into seven rounds of clicking Next.
  */
 const GROUPED_MIN_WIDTH = 1024;
+const COMPACT_MAX_WIDTH = 768;
+const QUESTIONS_PER_MOBILE_PAGE = 3;
 
 type WizardPage = {
     key: string;
@@ -144,23 +147,19 @@ function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialP
     const { width } = useWindowDimensions();
     const grouped = Platform.OS === 'web' && width >= GROUPED_MIN_WIDTH;
 
+    // Wide screens show every question on one page; phones get three questions per page.
+    const compact = width < COMPACT_MAX_WIDTH;
     const pages = useMemo<WizardPage[]>(() => {
         const steps = getInterviewSteps(creating);
-        if (grouped) {
-            return PROFILE_WIZARD_GROUPS.map((group) => ({
-                key: group.id,
-                label: group.label,
-                description: group.description,
-                steps: steps.filter((step) => step.group === group.id)
-            }));
-        }
-        return steps.map((step) => ({
-            key: step.field,
-            label: step.label,
-            description: step.description,
-            steps: [step]
+        const chunks = compact ? chunkSteps(steps, QUESTIONS_PER_MOBILE_PAGE) : [steps];
+        return chunks.map((chunk, index) => ({
+            key: `page-${index}`,
+            label: 'Your preferences',
+            description: 'Answer each question; you can change these later.',
+            steps: chunk
         }));
-    }, [grouped, creating]);
+    }, [creating, compact]);
+    const [openField, setOpenField] = useState<string | null>(null);
 
     // Derived rather than stored, so resizing across the breakpoint mid-setup
     // lands on a page that exists instead of an index past the end.
@@ -187,10 +186,12 @@ function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialP
     }
 
     function goBack() {
+        setOpenField(null);
         setPageIndex(clampPageIndex(currentPage - 1, pages.length));
     }
 
     function goNext() {
+        setOpenField(null);
         setPageIndex(clampPageIndex(currentPage + 1, pages.length));
     }
 
@@ -243,11 +244,15 @@ function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialP
                 keyboardShouldPersistTaps='handled'
             >
                 <View style={styles.wizardShell}>
-                    <View style={styles.progressHeader}>
-                        <Text style={styles.stepCount}>STEP {currentPage + 1} OF {pages.length}</Text>
-                        <Text style={styles.stepLabel}>{page.label}</Text>
-                    </View>
-                    <InterviewProgress step={currentPage + 1} total={pages.length} />
+                    {pages.length > 1 && (
+                        <>
+                            <View style={styles.progressHeader}>
+                                <Text style={styles.stepCount}>STEP {currentPage + 1} OF {pages.length}</Text>
+                                <Text style={styles.stepLabel}>{page.label}</Text>
+                            </View>
+                            <InterviewProgress step={currentPage + 1} total={pages.length} />
+                        </>
+                    )}
                     <View style={styles.questionCard}>
                         <Text accessibilityRole='header' accessibilityLevel={2} style={styles.question}>
                             {page.label}
@@ -255,11 +260,17 @@ function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialP
                         <Text style={styles.description}>{page.description}</Text>
                         {page.steps.map((step, index) => {
                             const values = valuesForStep(step);
+                            const section = index === 0 || page.steps[index - 1].group !== step.group
+                                ? PROFILE_WIZARD_GROUPS.find((group) => group.id === step.group)
+                                : undefined;
                             return (
                                 <View
                                     key={step.field}
                                     style={[styles.field, index > 0 && styles.fieldSpaced]}
                                 >
+                                    {section && page.steps.length > 1 && (
+                                        <Text accessibilityRole='header' accessibilityLevel={3} style={styles.sectionHeading}>{section.label}</Text>
+                                    )}
                                     {page.steps.length > 1 && (
                                         <>
                                             <Text style={styles.fieldLabel}>{step.label}</Text>
@@ -276,9 +287,21 @@ function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialP
                                             style={styles.nameInput}
                                             value={displayName}
                                         />
+                                    ) : step.kind === 'dropdown' ? (
+                                        <MultiSelectDropdown
+                                            label={step.label}
+                                            multiSelect={!!step.multiSelect}
+                                            open={openField === step.field}
+                                            onOpenChange={(open) => setOpenField(open ? step.field : null)}
+                                            options={optionsForStep(step, recipeOptions ?? { cuisines: [], proteins: [], stores: [] }, values)}
+                                            selected={values}
+                                            onToggle={(option) => step.field !== 'displayName' && toggleOption(step.field, option)}
+                                        />
                                     ) : step.kind === 'search' ? (
                                         <IngredientSearch
                                             label={step.label}
+                                            open={openField === step.field}
+                                            onOpenChange={(open) => setOpenField(open ? step.field : null)}
                                             options={recipeOptions}
                                             selected={values}
                                             onToggle={(key) => toggleOption('dislikedIngredients', key)}
@@ -328,9 +351,11 @@ function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialP
                     )}
                     {!!saveError && <Text accessibilityRole='alert' style={styles.requirement}>{saveError}</Text>}
                     <View style={styles.navigation}>
-                        <Pressable accessibilityRole='button' disabled={currentPage === 0} onPress={goBack} style={[styles.backButton, currentPage === 0 && styles.disabledButton]}>
-                            <Text style={[styles.backText, currentPage === 0 && styles.disabledText]}>Back</Text>
-                        </Pressable>
+                        {pages.length > 1 && (
+                            <Pressable accessibilityRole='button' disabled={currentPage === 0} onPress={goBack} style={[styles.backButton, currentPage === 0 && styles.disabledButton]}>
+                                <Text style={[styles.backText, currentPage === 0 && styles.disabledText]}>Back</Text>
+                            </Pressable>
+                        )}
                         <Pressable
                             accessibilityRole='button'
                             disabled={saving || !hydrated || !canAdvance}
@@ -383,42 +408,160 @@ function InterviewProgress({ step, total }: { step: number; total: number }) {
     </View>;
 }
 
-/** Type to find ingredients from the recipe catalogue; stores ingredient keys, shows names. */
-function IngredientSearch({ label, options, selected, onToggle }: { label: string; options: RecipeOptions | null; selected: string[]; onToggle: (key: string) => void }) {
+/** A closed field showing the current choices; opens an inline list of checkable options. */
+function MultiSelectDropdown({ label, multiSelect, open, onOpenChange, options, selected, onToggle }: {
+    label: string; multiSelect: boolean; open: boolean; onOpenChange: (open: boolean) => void;
+    options: string[]; selected: string[]; onToggle: (option: string) => void;
+}) {
+    const [query, setQuery] = useState('');
+    const shown = filterOptions(options, query);
+    const placeholder = `Choose ${label.toLowerCase().replace(/ you enjoy$/, '')}`;
+    return (
+        <View style={styles.dropdown}>
+            {!!selected.length && (
+                <View style={styles.badges}>
+                    {selected.map((option) => (
+                        <Pressable
+                            accessibilityRole='button'
+                            accessibilityLabel={`Remove ${option} from ${label.toLowerCase()}`}
+                            key={option}
+                            onPress={() => onToggle(option)}
+                            style={styles.badge}
+                        >
+                            <Text style={styles.badgeText}>{option}</Text>
+                            <MaterialDesignIcons color='#FFFFFF' name='close' size={14} />
+                        </Pressable>
+                    ))}
+                </View>
+            )}
+            <Pressable
+                accessibilityRole='button'
+                accessibilityLabel={`${label}: ${selectionSummary(selected, 'none chosen')}`}
+                aria-expanded={open}
+                onPress={() => { setQuery(''); onOpenChange(!open); }}
+                style={[styles.dropdownField, open && styles.dropdownFieldOpen]}
+            >
+                <Text numberOfLines={1} style={[styles.dropdownValue, styles.dropdownPlaceholder]}>
+                    {selected.length ? (multiSelect ? 'Add more' : 'Change') : placeholder}
+                </Text>
+                <MaterialDesignIcons color='#5C6B64' name={open ? 'chevron-up' : 'chevron-down'} size={22} />
+            </Pressable>
+            {open && (
+                <View style={styles.dropdownList}>
+                    <TextInput
+                        accessibilityLabel={`Search ${label.toLowerCase()}`}
+                        autoFocus
+                        onChangeText={setQuery}
+                        placeholder='Type to search'
+                        placeholderTextColor='#9A9188'
+                        style={styles.dropdownSearch}
+                        value={query}
+                    />
+                    <ScrollView keyboardShouldPersistTaps='handled' nestedScrollEnabled style={styles.dropdownResults}>
+                    {shown.map((option) => {
+                        const checked = selected.includes(option);
+                        return (
+                            <Pressable
+                                accessibilityRole={multiSelect ? 'checkbox' : 'radio'}
+                                aria-checked={checked}
+                                accessibilityLabel={`${label}: ${option}`}
+                                key={option}
+                                onPress={() => { onToggle(option); if (!multiSelect) onOpenChange(false); }}
+                                style={[styles.dropdownRow, checked && styles.dropdownRowChecked]}
+                            >
+                                <MaterialDesignIcons
+                                    color={checked ? theme.colors.primary : '#9A9188'}
+                                    name={multiSelect ? (checked ? 'checkbox-marked' : 'checkbox-blank-outline') : (checked ? 'radiobox-marked' : 'radiobox-blank')}
+                                    size={20}
+                                />
+                                <Text style={styles.dropdownRowText}>{option}</Text>
+                            </Pressable>
+                        );
+                    })}
+                    {!shown.length && <Text style={[styles.helper, styles.dropdownEmpty]}>No matches.</Text>}
+                    </ScrollView>
+                </View>
+            )}
+        </View>
+    );
+}
+
+/** Dropdown over the recipe ingredients with a search box; stores ingredient keys, shows names as badges. */
+function IngredientSearch({ label, open, onOpenChange, options, selected, onToggle }: {
+    label: string; open: boolean; onOpenChange: (open: boolean) => void;
+    options: RecipeOptions | null; selected: string[]; onToggle: (key: string) => void;
+}) {
     const [query, setQuery] = useState('');
     const ingredients = options?.ingredients ?? [];
     const names = useMemo(() => new Map(ingredients.map((item) => [item.key, item.name])), [ingredients]);
-    const results = searchIngredients(ingredients, query).filter((item) => !selected.includes(item.key));
+    const results = searchIngredients(ingredients, query);
     if (options && !ingredients.length) {
         return <Text style={styles.helper}>Ingredient list is unavailable right now. You can skip this and add it later from your profile.</Text>;
     }
-    const chip = (key: string, chosen: boolean) => (
-        <Pressable
-            accessibilityRole='button'
-            aria-pressed={chosen}
-            accessibilityLabel={`${label}: ${names.get(key) ?? key}${chosen ? ', remove' : ''}`}
-            key={key}
-            onPress={() => onToggle(key)}
-            style={[styles.option, chosen && styles.optionSelected]}
-        >
-            {chosen && <MaterialDesignIcons color='#FFFFFF' name='close' size={16} style={styles.optionCheck} />}
-            <Text style={[styles.optionText, chosen && styles.optionTextSelected]}>{names.get(key) ?? key}</Text>
-        </Pressable>
-    );
+    const name = (key: string) => names.get(key) ?? key;
     return (
-        <View style={styles.searchField}>
-            {!!selected.length && <View style={styles.options}>{selected.map((key) => chip(key, true))}</View>}
-            <TextInput
-                accessibilityLabel={`Search ${label.toLowerCase()}`}
-                editable={!!options}
-                onChangeText={setQuery}
-                placeholder={options ? 'Search ingredients, e.g. mushroom' : 'Loading ingredients…'}
-                placeholderTextColor='#9A9188'
-                style={styles.nameInput}
-                value={query}
-            />
-            {!!results.length && <View style={[styles.options, styles.searchResults]}>{results.map((item) => chip(item.key, false))}</View>}
-            {!!query.trim() && !results.length && !!options && <Text style={styles.helper}>No matching ingredients.</Text>}
+        <View style={styles.dropdown}>
+            {!!selected.length && (
+                <View style={styles.badges}>
+                    {selected.map((key) => (
+                        <Pressable
+                            accessibilityRole='button'
+                            accessibilityLabel={`Remove ${name(key)} from ${label.toLowerCase()}`}
+                            key={key}
+                            onPress={() => onToggle(key)}
+                            style={styles.badge}
+                        >
+                            <Text style={styles.badgeText}>{name(key)}</Text>
+                            <MaterialDesignIcons color='#FFFFFF' name='close' size={14} />
+                        </Pressable>
+                    ))}
+                </View>
+            )}
+            <Pressable
+                accessibilityRole='button'
+                accessibilityLabel={`${label}: ${selectionSummary(selected.map(name), 'none chosen')}`}
+                aria-expanded={open}
+                disabled={!options}
+                onPress={() => onOpenChange(!open)}
+                style={[styles.dropdownField, open && styles.dropdownFieldOpen]}
+            >
+                <Text numberOfLines={1} style={[styles.dropdownValue, styles.dropdownPlaceholder]}>
+                    {!options ? 'Loading ingredients…' : selected.length ? 'Add more' : 'Choose ingredients'}
+                </Text>
+                <MaterialDesignIcons color='#5C6B64' name={open ? 'chevron-up' : 'chevron-down'} size={22} />
+            </Pressable>
+            {open && (
+                <View style={styles.dropdownList}>
+                    <TextInput
+                        accessibilityLabel={`Search ${label.toLowerCase()}`}
+                        autoFocus
+                        onChangeText={setQuery}
+                        placeholder='Search, e.g. mushroom'
+                        placeholderTextColor='#9A9188'
+                        style={styles.dropdownSearch}
+                        value={query}
+                    />
+                    <ScrollView keyboardShouldPersistTaps='handled' nestedScrollEnabled style={styles.dropdownResults}>
+                        {results.map((item) => {
+                            const checked = selected.includes(item.key);
+                            return (
+                                <Pressable
+                                    accessibilityRole='checkbox'
+                                    aria-checked={checked}
+                                    accessibilityLabel={`${label}: ${item.name}`}
+                                    key={item.key}
+                                    onPress={() => onToggle(item.key)}
+                                    style={[styles.dropdownRow, checked && styles.dropdownRowChecked]}
+                                >
+                                    <MaterialDesignIcons color={checked ? theme.colors.primary : '#9A9188'} name={checked ? 'checkbox-marked' : 'checkbox-blank-outline'} size={20} />
+                                    <Text style={styles.dropdownRowText}>{item.name}</Text>
+                                </Pressable>
+                            );
+                        })}
+                        {!results.length && <Text style={[styles.helper, styles.dropdownEmpty]}>No matching ingredients.</Text>}
+                    </ScrollView>
+                </View>
+            )}
         </View>
     );
 }
@@ -441,8 +584,22 @@ const styles = StyleSheet.create({
     editHint: { color: '#8A8178', fontSize: 12, marginTop: 18, textAlign: 'center' },
     eyebrow: { color: '#8A8178', fontSize: 11, fontWeight: '700', letterSpacing: 1.1 },
     header: { alignItems: 'center', backgroundColor: '#FFFFFF', borderBottomColor: '#EEE9E2', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: 18 },
-    searchField: { width: '100%' },
-    searchResults: { marginTop: 12 },
+    dropdown: { width: '100%' },
+    badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+    badge: { alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 16, flexDirection: 'row', gap: 6, paddingHorizontal: 12, paddingVertical: 6 },
+    badgeText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+    sectionHeading: { color: theme.colors.primary, fontSize: 13, fontWeight: '700', letterSpacing: 0.6, marginBottom: 10, textTransform: 'uppercase' },
+    dropdownField: { alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#DED8D0', borderRadius: 12, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 48, paddingHorizontal: 14 },
+    dropdownFieldOpen: { borderColor: theme.colors.primary },
+    dropdownValue: { color: '#26352F', flex: 1, fontSize: 16, marginRight: 8 },
+    dropdownPlaceholder: { color: '#9A9188' },
+    dropdownList: { backgroundColor: '#FFFFFF', borderColor: '#DED8D0', borderRadius: 12, borderWidth: 1, marginTop: 6, maxHeight: 280 },
+    dropdownRow: { alignItems: 'center', flexDirection: 'row', gap: 10, minHeight: 44, paddingHorizontal: 14 },
+    dropdownRowChecked: { backgroundColor: '#F1F5F2' },
+    dropdownRowText: { color: '#26352F', fontSize: 15 },
+    dropdownSearch: { borderBottomColor: '#EEE9E3', borderBottomWidth: 1, color: '#26352F', fontSize: 15, paddingHorizontal: 14, paddingVertical: 12 },
+    dropdownResults: { maxHeight: 232 },
+    dropdownEmpty: { marginBottom: 12 },
     helper: { color: '#8A8178', fontSize: 12, marginTop: 12, textAlign: 'center' },
     nameInput: { backgroundColor: '#FFFFFF', borderColor: '#DED8D0', borderRadius: 12, borderWidth: 1, color: '#26352F', fontSize: 16, padding: 14, width: '100%' },
     navigation: { flexDirection: 'row', marginTop: 28 },

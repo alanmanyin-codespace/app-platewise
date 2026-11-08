@@ -1,7 +1,7 @@
 import { createProfile } from './profileState';
 import { getInterviewProfile } from './profileSetup';
 import { describe, expect, it } from 'vitest';
-import { applyProfileOption, initialSelections, keepHiddenValues, optionsForStep } from './profileSetup';
+import { applyProfileOption, initialSelections, keepHiddenValues, filterOptions, optionsForStep, selectionSummary } from './profileSetup';
 import { PROFILE_WIZARD_STEPS } from './profileWizard';
 
 describe('profile setup options', () => {
@@ -69,5 +69,26 @@ describe('options shown for each step', () => {
         const none = { cuisines: [], proteins: [], stores: [] };
         expect(optionsForStep(step('preferredStores'), none, [])).toEqual(['No preference']);
         expect(optionsForStep(step('allergies'), lists, [])).toEqual(step('allergies').options);
+    });
+});
+
+describe('dropdown summary', () => {
+    it('describes the current selection in one line', () => {
+        expect(selectionSummary([], 'Choose cuisines')).toBe('Choose cuisines');
+        expect(selectionSummary(['No preference'], 'Choose cuisines')).toBe('No preference');
+        expect(selectionSummary(['Italian', 'Thai'], 'Choose cuisines')).toBe('Italian, Thai');
+        expect(selectionSummary(['Italian', 'Thai', 'Greek', 'Mexican'], 'Choose cuisines')).toBe('Italian, Thai +2 more');
+    });
+});
+
+describe('dropdown search', () => {
+    const options = ['No preference', 'Italian', 'Thai', 'Tunisian', 'British'];
+    it('keeps every option for an empty query', () => {
+        expect(filterOptions(options, ' ')).toEqual(options);
+    });
+    it('matches case-insensitively, names starting with the text first', () => {
+        expect(filterOptions(options, 'T')).toEqual(['Thai', 'Tunisian', 'Italian', 'British']);
+        expect(filterOptions(options, 'ital')).toEqual(['Italian']);
+        expect(filterOptions(options, 'xyz')).toEqual([]);
     });
 });
