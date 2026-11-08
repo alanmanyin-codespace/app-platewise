@@ -7,6 +7,8 @@ const listFields: ProfileListField[] = [
     'mealPlanningPreferences',
     'preferredStores'
 ];
+/** Added after profiles were first stored; older profiles load with them empty. */
+const recipeFields = ['cuisines', 'proteins', 'dislikedIngredients'] as const;
 
 export const profileAtom = atom<Profile | null>(null);
 export const profileHydratedAtom = atom(false);
@@ -21,6 +23,9 @@ export function createProfile(patch: ProfilePatch = {}, updatedAt = new Date().t
         dietaryPreferences: patch.dietaryPreferences ?? [],
         mealPlanningPreferences: patch.mealPlanningPreferences ?? [],
         preferredStores: patch.preferredStores ?? [],
+        cuisines: patch.cuisines ?? [],
+        proteins: patch.proteins ?? [],
+        dislikedIngredients: patch.dislikedIngredients ?? [],
         onboardingComplete: patch.onboardingComplete ?? false,
         updatedAt
     };
@@ -77,7 +82,11 @@ export function parseStoredProfile(raw: string | null): Profile | null {
             return null;
         }
 
-        return value as Profile;
+        const profile = value as Profile;
+        for (const field of recipeFields) {
+            if (!Array.isArray(profile[field])) profile[field] = [];
+        }
+        return profile;
     } catch {
         return null;
     }

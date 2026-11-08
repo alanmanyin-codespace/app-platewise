@@ -38,4 +38,19 @@ describe('account profile persistence', () => {
         await expect(saveProfile({ ...createProfile(), id: 'account-a' })).rejects.toThrow('Sign in again');
         expect(local.setItem).not.toHaveBeenCalled();
     });
+    it('loads and saves recipe preferences on the account', async () => {
+        auth.getSession.mockResolvedValue({ data: { session: { user: { id: 'account-a' } } } });
+        table.maybeSingle.mockResolvedValueOnce({ data: { id: 'account-a', display_name: 'A', household_size: 2, savings_goal: null,
+            allergies: [], dietary_preferences: [], meal_planning_preferences: [], preferred_stores: [], cuisines: ['Thai'], proteins: ['Pork'],
+            disliked_ingredients: ['olive'], onboarding_complete: true, updated_at: '2026-01-01' }, error: null });
+        await expect(loadProfile()).resolves.toMatchObject({ cuisines: ['Thai'], proteins: ['Pork'], dislikedIngredients: ['olive'] });
+        await saveProfile({ ...createProfile({ cuisines: ['Thai'], proteins: ['Pork'], dislikedIngredients: ['olive'] }), id: 'account-a' });
+        expect(table.upsert).toHaveBeenCalledWith(expect.objectContaining({ cuisines: ['Thai'], proteins: ['Pork'], disliked_ingredients: ['olive'] }));
+    });
+    it('treats account rows without recipe preference columns as empty', async () => {
+        auth.getSession.mockResolvedValue({ data: { session: { user: { id: 'account-a' } } } });
+        table.maybeSingle.mockResolvedValueOnce({ data: { id: 'account-a', display_name: 'A', household_size: null, savings_goal: null,
+            allergies: [], dietary_preferences: [], meal_planning_preferences: [], preferred_stores: [], onboarding_complete: false, updated_at: '2026-01-01' }, error: null });
+        await expect(loadProfile()).resolves.toMatchObject({ cuisines: [], proteins: [], dislikedIngredients: [] });
+    });
 });

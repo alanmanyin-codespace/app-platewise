@@ -52,4 +52,12 @@ describe('profile state', () => {
         expect(parseStoredProfile('{not-json}')).toBeNull();
         expect(parseStoredProfile(JSON.stringify({ displayName: 'Missing fields' }))).toBeNull();
     });
+    it('loads a profile saved before recipe preferences existed', () => {
+        const old = { id: 'anonymous-1', displayName: 'Alex', allergies: [], dietaryPreferences: [], mealPlanningPreferences: [], preferredStores: ['Metro'], onboardingComplete: true, updatedAt: '2026-10-23T00:00:00.000Z' };
+        expect(parseStoredProfile(JSON.stringify(old))).toMatchObject({ preferredStores: ['Metro'], cuisines: [], proteins: [], dislikedIngredients: [] });
+    });
+
+    it('starts new profiles with empty recipe preferences', () => {
+        expect(createProfile()).toMatchObject({ cuisines: [], proteins: [], dislikedIngredients: [] });
+    });
 });

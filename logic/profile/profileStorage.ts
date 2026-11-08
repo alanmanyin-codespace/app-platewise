@@ -34,7 +34,8 @@ export async function loadProfile(): Promise<Profile | null> {
         id: data.id, displayName: data.display_name, householdSize: data.household_size ?? undefined,
         savingsGoal: data.savings_goal ?? undefined, allergies: data.allergies,
         dietaryPreferences: data.dietary_preferences, mealPlanningPreferences: data.meal_planning_preferences,
-        preferredStores: data.preferred_stores, onboardingComplete: data.onboarding_complete, updatedAt: data.updated_at
+        preferredStores: data.preferred_stores, cuisines: data.cuisines ?? [], proteins: data.proteins ?? [],
+        dislikedIngredients: data.disliked_ingredients ?? [], onboardingComplete: data.onboarding_complete, updatedAt: data.updated_at
     };
 }
 
@@ -50,7 +51,8 @@ export async function saveProfile(profile: Profile): Promise<void> {
         id: profile.id, display_name: profile.displayName, household_size: profile.householdSize ?? null,
         savings_goal: profile.savingsGoal ?? null, allergies: profile.allergies,
         dietary_preferences: profile.dietaryPreferences, meal_planning_preferences: profile.mealPlanningPreferences,
-        preferred_stores: profile.preferredStores, onboarding_complete: profile.onboardingComplete, updated_at: profile.updatedAt
+        preferred_stores: profile.preferredStores, cuisines: profile.cuisines, proteins: profile.proteins,
+        disliked_ingredients: profile.dislikedIngredients, onboarding_complete: profile.onboardingComplete, updated_at: profile.updatedAt
     });
     if (error) throw error;
 }

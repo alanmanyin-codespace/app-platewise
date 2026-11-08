@@ -7,17 +7,26 @@ export type Profile = {
     dietaryPreferences: string[];
     mealPlanningPreferences: string[];
     preferredStores: string[];
+    /** Cuisine area names from the recipe catalogue. */
+    cuisines: string[];
+    /** Protein option names, e.g. Chicken or Plant-based. */
+    proteins: string[];
+    /** Ingredient keys as built by platewise-api. */
+    dislikedIngredients: string[];
     onboardingComplete: boolean;
     updatedAt: string;
 };
 
 export type ProfilePatch = Partial<
-    Omit<Profile, 'id' | 'updatedAt' | 'allergies' | 'dietaryPreferences' | 'mealPlanningPreferences' | 'preferredStores'>
+    Omit<Profile, 'id' | 'updatedAt' | ProfileListField>
 > &
-    Partial<Pick<Profile, 'allergies' | 'dietaryPreferences' | 'mealPlanningPreferences' | 'preferredStores'>>;
+    Partial<Pick<Profile, ProfileListField>>;
 
 export type ProfileListField =
     | 'allergies'
     | 'dietaryPreferences'
     | 'mealPlanningPreferences'
-    | 'preferredStores';
+    | 'preferredStores'
+    | 'cuisines'
+    | 'proteins'
+    | 'dislikedIngredients';

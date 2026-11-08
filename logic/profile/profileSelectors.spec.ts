@@ -10,7 +10,10 @@ const baseProfile: Profile = {
     allergies: ['Peanuts'],
     dietaryPreferences: ['Vegetarian'],
     mealPlanningPreferences: ['The whole week'],
-    preferredStores: ['Metro'],
+    preferredStores: ['Walmart'],
+    cuisines: ['Italian'],
+    proteins: ['Chicken'],
+    dislikedIngredients: ['coriander'],
     onboardingComplete: true,
     updatedAt: '2026-10-23T00:00:00.000Z'
 };
@@ -31,16 +34,22 @@ describe('profile selectors', () => {
         ).toBe(71);
     });
 
+    it('ignores the hidden savings and meal-planning answers', () => {
+        const empty = { ...baseProfile, householdSize: undefined, allergies: [], dietaryPreferences: [], preferredStores: [], cuisines: [], proteins: [], dislikedIngredients: [] };
+        expect(getProfileCompletion(empty)).toBe(0);
+    });
+
     it('returns a complete profile summary', () => {
         expect(getProfileCompletion(baseProfile)).toBe(100);
         expect(getProfileSummary(baseProfile)).toEqual([
             'Alex',
             'Household: 3',
-            'Savings goal: Lower my weekly bill',
+            'Cuisines: Italian',
+            'Proteins: Chicken',
+            'Avoids: coriander',
             'Allergies: Peanuts',
             'Diet: Vegetarian',
-            'Meal planning: The whole week',
-            'Stores: Metro'
+            'Stores: Walmart'
         ]);
     });
 });
