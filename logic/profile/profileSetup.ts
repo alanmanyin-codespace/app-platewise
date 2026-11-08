@@ -72,3 +72,13 @@ export function initialSelections(profile: Profile | null, steps: ProfileWizardS
 export function keepHiddenValues(saved: string[], selected: string[], options: string[]): string[] {
     return [...saved.filter((value) => !options.includes(value)), ...selected];
 }
+
+type RemoteLists = { cuisines: string[]; proteins: { name: string }[]; stores: string[] };
+
+/** Chips for a step: fixed options, or "No preference" plus the API list and any saved values not in it. */
+export function optionsForStep(step: ProfileWizardStep, lists: RemoteLists, selected: string[]): string[] {
+    if (!step.remoteOptions) return step.options ?? [];
+    const remote = step.field === 'cuisines' ? lists.cuisines : step.field === 'proteins' ? lists.proteins.map((item) => item.name) : lists.stores;
+    const options = ['No preference', ...remote.filter((value) => value !== 'No preference')];
+    return [...options, ...selected.filter((value) => !options.includes(value))];
+}

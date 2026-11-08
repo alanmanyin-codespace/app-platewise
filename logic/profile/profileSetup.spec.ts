@@ -1,7 +1,7 @@
 import { createProfile } from './profileState';
 import { getInterviewProfile } from './profileSetup';
 import { describe, expect, it } from 'vitest';
-import { applyProfileOption, initialSelections, keepHiddenValues } from './profileSetup';
+import { applyProfileOption, initialSelections, keepHiddenValues, optionsForStep } from './profileSetup';
 import { PROFILE_WIZARD_STEPS } from './profileWizard';
 
 describe('profile setup options', () => {
@@ -52,5 +52,22 @@ describe('editing an existing profile', () => {
 
     it('starts empty for a new profile', () => {
         expect(initialSelections(null, PROFILE_WIZARD_STEPS).preferredStores).toEqual([]);
+    });
+});
+
+describe('options shown for each step', () => {
+    const lists = { cuisines: ['Italian', 'Thai'], proteins: [{ name: 'Chicken', categories: ['Chicken'] }], stores: ['Walmart', 'Sobeys'] };
+    const step = (field: string) => PROFILE_WIZARD_STEPS.find((item) => item.field === field)!;
+    it('fills API-backed steps after "No preference"', () => {
+        expect(optionsForStep(step('cuisines'), lists, [])).toEqual(['No preference', 'Italian', 'Thai']);
+        expect(optionsForStep(step('proteins'), lists, [])).toEqual(['No preference', 'Chicken']);
+    });
+    it('keeps a saved store that has no flyer this week', () => {
+        expect(optionsForStep(step('preferredStores'), lists, ['Calgary Co-op'])).toEqual(['No preference', 'Walmart', 'Sobeys', 'Calgary Co-op']);
+    });
+    it('falls back to "No preference" when the lists are unavailable, and leaves fixed lists alone', () => {
+        const none = { cuisines: [], proteins: [], stores: [] };
+        expect(optionsForStep(step('preferredStores'), none, [])).toEqual(['No preference']);
+        expect(optionsForStep(step('allergies'), lists, [])).toEqual(step('allergies').options);
     });
 });

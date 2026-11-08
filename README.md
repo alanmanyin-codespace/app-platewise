@@ -57,7 +57,10 @@ The app can be explored without Supabase configuration. To enable account-backed
 ```dotenv
 EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+EXPO_PUBLIC_PLATEWISE_API_URL=https://platewise-api-dev.alan-man-calu-260618.workers.dev
 ```
+
+`EXPO_PUBLIC_PLATEWISE_API_URL` points at platewise-api; the profile interview loads its cuisine, protein, ingredient and Calgary store lists from it and works offline from the last saved copy.
 
 Use a Supabase **publishable** key only: `EXPO_PUBLIC_` variables are embedded in the client and are not secrets. Never place a service-role key or other secret in the app. Account features also require a configured Supabase project, the applicable [database migrations](supabase/migrations/), and the relevant authentication providers and redirect URLs. The precise provider configuration depends on your deployment.
 

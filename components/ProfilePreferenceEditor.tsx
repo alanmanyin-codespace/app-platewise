@@ -1,14 +1,18 @@
 import type { Profile, ProfileListField } from '@/logic/profile/types';
 import { theme } from '@/lib/theme';
+import { PROFILE_WIZARD_STEPS } from '@/logic/profile/profileWizard';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 type Props = { profile: Profile; onToggle: (field: ProfileListField, value: string) => void };
 
+const EXCLUSIVE = new Set(['None', 'No preference']);
+const stepOptions = (field: ProfileListField) => (PROFILE_WIZARD_STEPS.find((step) => step.field === field)?.options ?? []).filter((option) => !EXCLUSIVE.has(option));
+
+// Quick toggles for the fixed lists only; cuisines, proteins, disliked ingredients and stores come
+// from platewise-api and are edited in the profile setup.
 const groups: { field: ProfileListField; label: string; options: string[] }[] = [
-    { field: 'allergies', label: 'Allergies', options: ['Peanuts', 'Tree Nuts', 'Dairy', 'Gluten', 'Shellfish', 'Soy', 'Eggs'] },
-    { field: 'dietaryPreferences', label: 'Dietary preferences', options: ['Vegetarian', 'High protein', 'Low carb', 'No preference'] },
-    { field: 'mealPlanningPreferences', label: 'Meal planning', options: ['A few dinners', 'The whole week', 'Quick meals', 'Batch cooking'] },
-    { field: 'preferredStores', label: 'Preferred stores', options: ['Metro', 'No Frills', 'FreshCo', 'Walmart', 'Food Basics'] }
+    { field: 'allergies', label: 'Allergies', options: stepOptions('allergies') },
+    { field: 'dietaryPreferences', label: 'Diet', options: stepOptions('dietaryPreferences') }
 ];
 
 export function ProfilePreferenceEditor({ profile, onToggle }: Props) {

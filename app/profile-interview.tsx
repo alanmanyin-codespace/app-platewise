@@ -7,7 +7,8 @@ import { authErrorAtom, authReadyAtom, authSessionAtom } from '@/logic/auth/auth
 import { theme } from '@/lib/theme';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
 import { PROFILE_ROUTE } from '@/logic/profile/interview';
-import { applyProfileOption, getInterviewProfile, initialSelections, keepHiddenValues, parseHouseholdSize, type ProfileOptionField } from '@/logic/profile/profileSetup';
+import { applyProfileOption, getInterviewProfile, initialSelections, keepHiddenValues, optionsForStep, parseHouseholdSize, type ProfileOptionField } from '@/logic/profile/profileSetup';
+import { loadRecipeOptions, searchIngredients, type RecipeOptions } from '@/logic/recipes/recipeOptions';
 import {
     clampPageIndex,
     getInterviewSteps,
@@ -131,6 +132,12 @@ function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialP
     const [hydrated] = useAtom(profileHydratedAtom);
     const [displayName, setDisplayName] = useState(initialProfile?.displayName ?? '');
     const [selections, setSelections] = useState<Record<ProfileOptionField, string[]>>(() => initialProfile ? initialSelections(initialProfile, PROFILE_WIZARD_STEPS) : emptySelections);
+    const [recipeOptions, setRecipeOptions] = useState<RecipeOptions | null>(null);
+    useEffect(() => {
+        let active = true;
+        loadRecipeOptions().then((options) => { if (active) setRecipeOptions(options); });
+        return () => { active = false; };
+    }, []);
     const [pageIndex, setPageIndex] = useState(0);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
@@ -269,9 +276,16 @@ function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialP
                                             style={styles.nameInput}
                                             value={displayName}
                                         />
+                                    ) : step.kind === 'search' ? (
+                                        <IngredientSearch
+                                            label={step.label}
+                                            options={recipeOptions}
+                                            selected={values}
+                                            onToggle={(key) => toggleOption('dislikedIngredients', key)}
+                                        />
                                     ) : (
                                         <View style={styles.options}>
-                                            {step.options?.map((option) => {
+                                            {optionsForStep(step, recipeOptions ?? { cuisines: [], proteins: [], stores: [] }, values).map((option) => {
                                                 const selected = values.includes(option);
                                                 return (
                                                     <Pressable
@@ -369,6 +383,46 @@ function InterviewProgress({ step, total }: { step: number; total: number }) {
     </View>;
 }
 
+/** Type to find ingredients from the recipe catalogue; stores ingredient keys, shows names. */
+function IngredientSearch({ label, options, selected, onToggle }: { label: string; options: RecipeOptions | null; selected: string[]; onToggle: (key: string) => void }) {
+    const [query, setQuery] = useState('');
+    const ingredients = options?.ingredients ?? [];
+    const names = useMemo(() => new Map(ingredients.map((item) => [item.key, item.name])), [ingredients]);
+    const results = searchIngredients(ingredients, query).filter((item) => !selected.includes(item.key));
+    if (options && !ingredients.length) {
+        return <Text style={styles.helper}>Ingredient list is unavailable right now. You can skip this and add it later from your profile.</Text>;
+    }
+    const chip = (key: string, chosen: boolean) => (
+        <Pressable
+            accessibilityRole='button'
+            aria-pressed={chosen}
+            accessibilityLabel={`${label}: ${names.get(key) ?? key}${chosen ? ', remove' : ''}`}
+            key={key}
+            onPress={() => onToggle(key)}
+            style={[styles.option, chosen && styles.optionSelected]}
+        >
+            {chosen && <MaterialDesignIcons color='#FFFFFF' name='close' size={16} style={styles.optionCheck} />}
+            <Text style={[styles.optionText, chosen && styles.optionTextSelected]}>{names.get(key) ?? key}</Text>
+        </Pressable>
+    );
+    return (
+        <View style={styles.searchField}>
+            {!!selected.length && <View style={styles.options}>{selected.map((key) => chip(key, true))}</View>}
+            <TextInput
+                accessibilityLabel={`Search ${label.toLowerCase()}`}
+                editable={!!options}
+                onChangeText={setQuery}
+                placeholder={options ? 'Search ingredients, e.g. mushroom' : 'Loading ingredients…'}
+                placeholderTextColor='#9A9188'
+                style={styles.nameInput}
+                value={query}
+            />
+            {!!results.length && <View style={[styles.options, styles.searchResults]}>{results.map((item) => chip(item.key, false))}</View>}
+            {!!query.trim() && !results.length && !!options && <Text style={styles.helper}>No matching ingredients.</Text>}
+        </View>
+    );
+}
+
 const styles = StyleSheet.create({
     backButton: { alignItems: 'center', borderColor: '#DED8D0', borderRadius: 12, borderWidth: 1, justifyContent: 'center', marginRight: 10, minHeight: 48, paddingHorizontal: 26 },
     backText: { color: '#26352F', fontSize: 14, fontWeight: '700' },
@@ -387,6 +441,8 @@ const styles = StyleSheet.create({
     editHint: { color: '#8A8178', fontSize: 12, marginTop: 18, textAlign: 'center' },
     eyebrow: { color: '#8A8178', fontSize: 11, fontWeight: '700', letterSpacing: 1.1 },
     header: { alignItems: 'center', backgroundColor: '#FFFFFF', borderBottomColor: '#EEE9E2', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: 18 },
+    searchField: { width: '100%' },
+    searchResults: { marginTop: 12 },
     helper: { color: '#8A8178', fontSize: 12, marginTop: 12, textAlign: 'center' },
     nameInput: { backgroundColor: '#FFFFFF', borderColor: '#DED8D0', borderRadius: 12, borderWidth: 1, color: '#26352F', fontSize: 16, padding: 14, width: '100%' },
     navigation: { flexDirection: 'row', marginTop: 28 },
