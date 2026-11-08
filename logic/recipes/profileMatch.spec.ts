@@ -20,6 +20,12 @@ describe('ingredient tags', () => {
         expect(ingredientTags('peanut butter').allergens).toEqual(['Peanuts']);
         expect(ingredientTags('coconut milk').allergens).not.toContain('Dairy');
         expect(ingredientTags('carrot').allergens).toEqual([]);
+        expect(ingredientTags('groundnut oil').allergens).toContain('Peanuts');
+        expect(ingredientTags('spelt flour').allergens).toContain('Gluten');
+        expect(ingredientTags('brown rice flour').allergens).not.toContain('Gluten');
+        expect(ingredientTags('cream of tartar').allergens).not.toContain('Dairy');
+        expect(ingredientTags('worcestershire sauce').allergens).toContain('Fish');
+        for (const key of ['gelatine', 'gelatin', 'suet']) expect(ingredientTags(key).groups).toContain('meat');
     });
 });
 

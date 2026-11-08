@@ -47,14 +47,22 @@ export async function saveProfile(profile: Profile): Promise<void> {
         return;
     }
     if (!accountOwnsProfile(profile, session.user.id)) throw new Error('This profile belongs to another account.');
-    const { error } = await supabase.from('profiles').upsert({
+    const row = {
         id: profile.id, display_name: profile.displayName, household_size: profile.householdSize ?? null,
         savings_goal: profile.savingsGoal ?? null, allergies: profile.allergies,
         dietary_preferences: profile.dietaryPreferences, meal_planning_preferences: profile.mealPlanningPreferences,
-        preferred_stores: profile.preferredStores, cuisines: profile.cuisines, proteins: profile.proteins,
-        disliked_ingredients: profile.dislikedIngredients, onboarding_complete: profile.onboardingComplete, updated_at: profile.updatedAt
-    });
+        preferred_stores: profile.preferredStores, onboarding_complete: profile.onboardingComplete, updated_at: profile.updatedAt
+    };
+    const recipePreferences = { cuisines: profile.cuisines, proteins: profile.proteins, disliked_ingredients: profile.dislikedIngredients };
+    let { error } = await supabase.from('profiles').upsert({ ...row, ...recipePreferences });
+    // Until the recipe-preference migration is applied, save everything else rather than nothing.
+    if (error && isMissingColumn(error)) ({ error } = await supabase.from('profiles').upsert(row));
     if (error) throw error;
+}
+
+/** PostgREST reports an unknown column as PGRST204; Postgres as 42703. */
+function isMissingColumn(error: { code?: string }): boolean {
+    return error.code === 'PGRST204' || error.code === '42703';
 }
 
 /** Clears only the local guest profile, never the signed-in account. */

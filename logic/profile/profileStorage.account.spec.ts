@@ -53,4 +53,12 @@ describe('account profile persistence', () => {
             allergies: [], dietary_preferences: [], meal_planning_preferences: [], preferred_stores: [], onboarding_complete: false, updated_at: '2026-01-01' }, error: null });
         await expect(loadProfile()).resolves.toMatchObject({ cuisines: [], proteins: [], dislikedIngredients: [] });
     });
+    it('still saves when the recipe preference columns are not migrated yet', async () => {
+        auth.getSession.mockResolvedValue({ data: { session: { user: { id: 'account-a' } } } });
+        table.upsert.mockResolvedValueOnce({ error: { code: 'PGRST204', message: "Could not find the 'cuisines' column of 'profiles' in the schema cache" } }).mockResolvedValueOnce({ error: null });
+        await expect(saveProfile({ ...createProfile({ cuisines: ['Thai'], allergies: ['Dairy'] }), id: 'account-a' })).resolves.toBeUndefined();
+        const retry = table.upsert.mock.calls[1][0];
+        expect(retry).toMatchObject({ allergies: ['Dairy'] });
+        expect(retry).not.toHaveProperty('cuisines');
+    });
 });
