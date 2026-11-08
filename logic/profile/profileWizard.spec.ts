@@ -12,14 +12,26 @@ import {
 
 describe('profile wizard steps', () => {
     it('presents one profile topic at a time in a stable order', () => {
-        expect(getInterviewSteps(true).map((step) => step.field)).toEqual([
+        expect(PROFILE_WIZARD_STEPS.map((step) => step.field)).toEqual([
+            'displayName',
             'householdSize',
-            'savingsGoal',
+            'cuisines',
+            'proteins',
+            'dislikedIngredients',
             'allergies',
             'dietaryPreferences',
-            'mealPlanningPreferences',
             'preferredStores'
         ]);
+        expect(getInterviewSteps(true)[0].field).toBe('householdSize');
+    });
+
+    it('offers only options the recipes can act on', () => {
+        const options = (field: string) => PROFILE_WIZARD_STEPS.find((step) => step.field === field)?.options;
+        expect(options('allergies')).toEqual(['None', 'Peanuts', 'Tree Nuts', 'Dairy', 'Gluten', 'Shellfish', 'Fish', 'Eggs', 'Soy', 'Sesame']);
+        expect(options('dietaryPreferences')).toEqual(['No preference', 'Vegetarian', 'Vegan', 'Pescatarian', 'No pork', 'No beef']);
+        for (const field of ['cuisines', 'proteins', 'preferredStores']) expect(options(field)).toEqual(['No preference']);
+        expect(PROFILE_WIZARD_STEPS.find((step) => step.field === 'dislikedIngredients')?.kind).toBe('search');
+        expect(PROFILE_WIZARD_GROUPS.at(-1)?.label).toBe('Where you shop');
     });
 
     it('retains the name field when editing', () => {
@@ -61,6 +73,11 @@ describe('wizard step completion', () => {
         const householdStep = getInterviewSteps(true)[0];
         expect(isWizardStepAnswered(householdStep, [])).toBe(false);
         expect(isWizardStepAnswered(householdStep, ['2'])).toBe(true);
+    });
+
+    it('lets the disliked-ingredients step be skipped', () => {
+        const step = PROFILE_WIZARD_STEPS.find((item) => item.field === 'dislikedIngredients')!;
+        expect(isWizardStepAnswered(step, [])).toBe(true);
     });
 });
 

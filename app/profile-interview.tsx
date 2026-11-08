@@ -7,12 +7,13 @@ import { authErrorAtom, authReadyAtom, authSessionAtom } from '@/logic/auth/auth
 import { theme } from '@/lib/theme';
 import { allergyFiltersAtom } from '@/logic/app-state/allergyFiltersAtom';
 import { PROFILE_ROUTE } from '@/logic/profile/interview';
-import { applyProfileOption, getInterviewProfile, type ProfileOptionField } from '@/logic/profile/profileSetup';
+import { applyProfileOption, getInterviewProfile, initialSelections, keepHiddenValues, parseHouseholdSize, type ProfileOptionField } from '@/logic/profile/profileSetup';
 import {
     clampPageIndex,
     getInterviewSteps,
     isWizardStepAnswered,
     PROFILE_WIZARD_GROUPS,
+    PROFILE_WIZARD_STEPS,
     type ProfileWizardStep
 } from '@/logic/profile/profileWizard';
 import { loadProfile, saveProfile } from '@/logic/profile/profileStorage';
@@ -38,14 +39,8 @@ type WizardPage = {
     steps: ProfileWizardStep[];
 };
 
-const emptySelections: Record<ProfileOptionField, string[]> = {
-    householdSize: [],
-    savingsGoal: [],
-    allergies: [],
-    dietaryPreferences: [],
-    mealPlanningPreferences: [],
-    preferredStores: []
-};
+const emptySelections = initialSelections(null, PROFILE_WIZARD_STEPS);
+const DIET_OPTIONS = PROFILE_WIZARD_STEPS.find((step) => step.field === 'dietaryPreferences')?.options ?? [];
 
 export default function ProfileInterview() {
     const [ready] = useAtom(authReadyAtom);
@@ -135,14 +130,7 @@ function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialP
     const [, setAllergyFilters] = useAtom(allergyFiltersAtom);
     const [hydrated] = useAtom(profileHydratedAtom);
     const [displayName, setDisplayName] = useState(initialProfile?.displayName ?? '');
-    const [selections, setSelections] = useState<Record<ProfileOptionField, string[]>>(() => initialProfile ? {
-        householdSize: initialProfile.householdSize ? [formatHouseholdSize(initialProfile.householdSize)] : [],
-        savingsGoal: initialProfile.savingsGoal ? [initialProfile.savingsGoal] : [],
-        allergies: initialProfile.allergies,
-        dietaryPreferences: initialProfile.dietaryPreferences,
-        mealPlanningPreferences: initialProfile.mealPlanningPreferences,
-        preferredStores: initialProfile.preferredStores
-    } : emptySelections);
+    const [selections, setSelections] = useState<Record<ProfileOptionField, string[]>>(() => initialProfile ? initialSelections(initialProfile, PROFILE_WIZARD_STEPS) : emptySelections);
     const [pageIndex, setPageIndex] = useState(0);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
@@ -204,10 +192,11 @@ function InterviewForm({ initialProfile, creating, onRequireSignIn }: { initialP
         const patch: ProfilePatch = {
             ...(!creating && { displayName }),
             householdSize: parseHouseholdSize(selections.householdSize[0]),
-            savingsGoal: selections.savingsGoal[0],
+            cuisines: selections.cuisines,
+            proteins: selections.proteins,
+            dislikedIngredients: selections.dislikedIngredients,
             allergies: selections.allergies,
-            dietaryPreferences: selections.dietaryPreferences,
-            mealPlanningPreferences: selections.mealPlanningPreferences,
+            dietaryPreferences: keepHiddenValues(initialProfile?.dietaryPreferences ?? [], selections.dietaryPreferences, DIET_OPTIONS),
             preferredStores: selections.preferredStores,
             onboardingComplete: true
         };
@@ -378,17 +367,6 @@ function InterviewProgress({ step, total }: { step: number; total: number }) {
     return <View accessibilityRole='progressbar' accessibilityLabel='Profile setup progress' accessibilityValue={{ min: 0, max: total, now: step }} style={styles.progressTrack}>
         <Animated.View style={[styles.progressFill, { width }]} />
     </View>;
-}
-
-function parseHouseholdSize(value?: string): number | undefined {
-    if (!value) return undefined;
-    if (value === '4+') return 4;
-    const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
-}
-
-function formatHouseholdSize(value: number): string {
-    return value >= 4 ? '4+' : String(value);
 }
 
 const styles = StyleSheet.create({
